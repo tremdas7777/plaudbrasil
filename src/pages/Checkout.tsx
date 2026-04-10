@@ -382,7 +382,10 @@ const Checkout = () => {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-foreground">Endereço de entrega</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input required value={cep} onChange={(e) => setCep(e.target.value)} placeholder="CEP" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <div className="relative">
+                  <input required value={cep} onChange={(e) => handleCepChange(e.target.value)} placeholder="CEP" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  {cepLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
+                </div>
                 <input required value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Cidade" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
                 <input required value={rua} onChange={(e) => setRua(e.target.value)} placeholder="Rua" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 sm:col-span-2" />
                 <input required value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="Número" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
