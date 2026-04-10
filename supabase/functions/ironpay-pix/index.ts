@@ -114,14 +114,15 @@ Deno.serve(async (req) => {
     console.log("IronPay transaction created successfully");
 
     // Return the PIX data
+    const pixData = (data.pix as Record<string, unknown>) || {};
     return new Response(
       JSON.stringify({
         success: true,
-        transaction_hash: data.transaction_hash || data.hash || data.id,
-        pix_qr_code: data.pix_qr_code || data.qr_code || data.qrcode,
-        pix_qr_code_url: data.pix_qr_code_url || data.qr_code_url || data.qrcode_url,
-        pix_copy_paste: data.pix_copy_paste || data.copy_paste || data.pix_code || data.emv,
-        status: data.status,
+        transaction_hash: data.hash || data.transaction_hash || data.id,
+        pix_qr_code: pixData.pix_qr_code || data.pix_qr_code || data.qr_code,
+        pix_qr_code_url: pixData.pix_url || data.pix_qr_code_url || data.qr_code_url,
+        pix_copy_paste: pixData.pix_qr_code || data.pix_copy_paste || data.copy_paste || data.emv,
+        status: data.payment_status || data.status,
         amount: data.amount,
         expires_at: data.expires_at || data.expiration,
         raw: data,
