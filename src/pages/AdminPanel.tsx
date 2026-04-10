@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -90,16 +91,14 @@ export default function AdminPanel() {
     loadWebhooksFromDb().then(config => { setWebhookConfig(config); saveWebhookConfig(config); });
     setUtmifyConfig(getUtmifyConfig());
     fetchPaymentGatewayConfig().then(config => setGatewayConfig(config));
-    const cloakerRaw = localStorage.getItem('cloaker_config');
-    if (cloakerRaw) {
-      try {
-        const c = JSON.parse(cloakerRaw);
-        setCloakerEnabled(c.enabled ?? true);
-        setCloakerGoogleEnabled(c.google_enabled ?? true);
-        setCloakerTiktokEnabled(c.tiktok_enabled ?? true);
-        setCloakerFacebookEnabled(c.facebook_enabled ?? true);
-      } catch {}
-    }
+    supabase.from('cloaker_config').select('enabled, google_enabled, tiktok_enabled, facebook_enabled').limit(1).single().then(({ data }) => {
+      if (data) {
+        setCloakerEnabled(data.enabled);
+        setCloakerGoogleEnabled((data as any).google_enabled ?? true);
+        setCloakerTiktokEnabled((data as any).tiktok_enabled ?? true);
+        setCloakerFacebookEnabled((data as any).facebook_enabled ?? true);
+      }
+    });
     fetchOrders();
   }, [isAuthenticated]);
 
@@ -685,11 +684,17 @@ export default function AdminPanel() {
             </div>
             <Card className="border border-border p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <div><p className="font-bold text-sm text-foreground">Cloaker Ativado</p><p className="text-muted-foreground text-[10px]">{cloakerEnabled ? 'Bots e revisores verão a página segura' : 'Todos os visitantes verão a página real'}</p></div>
-                <Switch checked={cloakerEnabled} disabled={cloakerLoading} onCheckedChange={(checked) => {
-                  setCloakerEnabled(checked);
-                  localStorage.setItem('cloaker_config', JSON.stringify({ enabled: checked, google_enabled: cloakerGoogleEnabled, tiktok_enabled: cloakerTiktokEnabled, facebook_enabled: cloakerFacebookEnabled }));
-                  setCloakerMessage(checked ? 'Cloaker ativado!' : 'Cloaker desativado!');
+                <div><p className="font-bold text-sm text-foreground">Cloaker Ativado</p><p className="text-muted-foreground text-[10px]">{cloakerEnabled ? 'Bots e revisores verão a página segura' : 'Todos os visitantes verão a página real (oferta)'}</p></div>
+                <Switch checked={cloakerEnabled} disabled={cloakerLoading} onCheckedChange={async (checked) => {
+                  setCloakerLoading(true);
+                  setCloakerMessage('');
+                  const { error } = await supabase
+                    .from('cloaker_config')
+                    .update({ enabled: checked, updated_at: new Date().toISOString() } as any)
+                    .eq('id', (await supabase.from('cloaker_config').select('id').limit(1).single()).data?.id || '');
+                  if (error) { setCloakerMessage('Erro ao salvar configuração'); }
+                  else { setCloakerEnabled(checked); setCloakerMessage(checked ? 'Cloaker ativado!' : 'Cloaker desativado!'); }
+                  setCloakerLoading(false);
                   setTimeout(() => setCloakerMessage(''), 3000);
                 }} />
               </div>
@@ -697,9 +702,9 @@ export default function AdminPanel() {
             </Card>
 
             {[
-              { key: 'google', label: 'Google Ads', emoji: '🔍', desc: 'Bloqueia AdsBot, Googlebot e IPs do Google', enabled: cloakerGoogleEnabled, setEnabled: setCloakerGoogleEnabled, color: 'bg-blue-600' },
-              { key: 'tiktok', label: 'TikTok Ads', emoji: '🎵', desc: 'Bloqueia ByteSpider, TikTokBot', enabled: cloakerTiktokEnabled, setEnabled: setCloakerTiktokEnabled, color: 'bg-black' },
-              { key: 'facebook', label: 'Facebook / Meta Ads', emoji: '📘', desc: 'Bloqueia facebookexternalhit, Facebot', enabled: cloakerFacebookEnabled, setEnabled: setCloakerFacebookEnabled, color: 'bg-blue-800' },
+              { key: 'google', label: 'Google Ads', emoji: '🔍', desc: 'Bloqueia AdsBot, Googlebot, IPs do Google, headers de revisão', enabled: cloakerGoogleEnabled, setEnabled: setCloakerGoogleEnabled, color: 'bg-blue-600' },
+              { key: 'tiktok', label: 'TikTok Ads', emoji: '🎵', desc: 'Bloqueia ByteSpider, TikTokBot, WebView ByteDance, IPs, JS bridges', enabled: cloakerTiktokEnabled, setEnabled: setCloakerTiktokEnabled, color: 'bg-black' },
+              { key: 'facebook', label: 'Facebook / Meta Ads', emoji: '📘', desc: 'Bloqueia facebookexternalhit, Facebot, Meta-ExternalAgent, IPs Meta', enabled: cloakerFacebookEnabled, setEnabled: setCloakerFacebookEnabled, color: 'bg-blue-800' },
             ].map(item => (
               <Card key={item.key} className="border border-border p-5 space-y-3">
                 <div className="flex items-center justify-between">
@@ -707,11 +712,15 @@ export default function AdminPanel() {
                     <span className="text-lg">{item.emoji}</span>
                     <div><p className="font-bold text-sm text-foreground">{item.label}</p><p className="text-muted-foreground text-[10px]">{item.desc}</p></div>
                   </div>
-                  <Switch checked={item.enabled} disabled={cloakerLoading || !cloakerEnabled} onCheckedChange={(checked) => {
+                  <Switch checked={item.enabled} disabled={cloakerLoading || !cloakerEnabled} onCheckedChange={async (checked) => {
+                    setCloakerLoading(true);
+                    const { data: row } = await supabase.from('cloaker_config').select('id').limit(1).single();
+                    const updateData: any = { updated_at: new Date().toISOString() };
+                    updateData[`${item.key}_enabled`] = checked;
+                    await supabase.from('cloaker_config').update(updateData).eq('id', row?.id || '');
                     item.setEnabled(checked);
-                    const config = { enabled: cloakerEnabled, google_enabled: item.key === 'google' ? checked : cloakerGoogleEnabled, tiktok_enabled: item.key === 'tiktok' ? checked : cloakerTiktokEnabled, facebook_enabled: item.key === 'facebook' ? checked : cloakerFacebookEnabled };
-                    localStorage.setItem('cloaker_config', JSON.stringify(config));
                     setCloakerMessage(`${item.label} ${checked ? 'ativado' : 'desativado'}!`);
+                    setCloakerLoading(false);
                     setTimeout(() => setCloakerMessage(''), 3000);
                   }} />
                 </div>
@@ -722,14 +731,52 @@ export default function AdminPanel() {
             <Card className="border border-border p-4 bg-muted/30 space-y-2">
               <p className="text-xs font-bold text-foreground flex items-center gap-1.5"><Shield size={14} /> 10 Camadas de Proteção</p>
               <ul className="text-[10px] text-muted-foreground space-y-1 list-disc pl-4">
-                <li><strong>Google:</strong> AdsBot, Googlebot, Lighthouse, IPs do Google</li>
-                <li><strong>TikTok:</strong> ByteSpider, TikTokBot, WebView ByteDance</li>
-                <li><strong>Facebook:</strong> facebookexternalhit, Facebot, Meta-ExternalAgent</li>
-                <li><strong>Behavioral:</strong> Análise de mouse, scroll, cliques</li>
-                <li><strong>JS Challenge:</strong> Desafio invisível de computação</li>
+                <li><strong>Google:</strong> AdsBot, Googlebot, Lighthouse, IPs do Google, headers de revisão</li>
+                <li><strong>TikTok:</strong> ByteSpider, TikTokBot, WebView ByteDance, IPs, JS bridges, headers x-tt</li>
+                <li><strong>Facebook:</strong> facebookexternalhit, Facebot, Meta-ExternalAgent, IPs Meta</li>
+                <li><strong>Behavioral:</strong> Análise de mouse, scroll, cliques e tempo (3s em background)</li>
+                <li><strong>JS Challenge:</strong> Desafio invisível de computação — bots básicos falham</li>
                 <li><strong>Rate Limiting:</strong> Detecta &gt;5 acessos/min do mesmo IP</li>
-                <li><strong>Fingerprint:</strong> Canvas, WebGL, plugins, touch, screen</li>
+                <li><strong>Fingerprint:</strong> Canvas, WebGL, plugins, touch, screen, timezone</li>
+                <li><strong>Bots IA:</strong> GPTBot, ClaudeBot, PerplexityBot, CCBot</li>
+                <li>Crawlers genéricos, scanners automatizados, headers suspeitos</li>
+                <li>Todos os bloqueios são logados no banco para auditoria</li>
               </ul>
+            </Card>
+
+            {/* Logs section */}
+            <Card className="border border-border p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-sm text-foreground flex items-center gap-1.5">📋 Logs de Bloqueio</p>
+                <Button size="sm" variant="outline" className="text-xs" disabled={cloakerLogsLoading} onClick={async () => {
+                  setCloakerLogsLoading(true);
+                  const { data } = await supabase.from('cloaker_logs').select('*').order('created_at', { ascending: false }).limit(30);
+                  setCloakerLogs(data || []);
+                  setCloakerLogsLoading(false);
+                }}>
+                  {cloakerLogsLoading ? <Loader2 size={12} className="animate-spin mr-1" /> : <RefreshCw size={12} className="mr-1" />}
+                  Carregar
+                </Button>
+              </div>
+
+              {cloakerLogs.length > 0 ? (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {cloakerLogs.map((log: any) => (
+                    <div key={log.id} className={`p-2.5 rounded border text-[10px] ${log.blocked ? 'border-destructive/30 bg-destructive/5' : 'border-green-500/30 bg-green-500/5'}`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <Badge variant={log.blocked ? 'destructive' : 'default'} className={`text-[9px] ${log.blocked ? '' : 'bg-green-500'}`}>
+                          {log.blocked ? '🚫 Bloqueado' : '✅ Liberado'}
+                        </Badge>
+                        <span className="text-muted-foreground">{new Date(log.created_at).toLocaleString('pt-BR')}</span>
+                      </div>
+                      <p><strong>IP:</strong> {log.ip} | <strong>Motivo:</strong> {log.reason} | <strong>Confiança:</strong> {log.confidence}%</p>
+                      <p className="truncate text-muted-foreground"><strong>UA:</strong> {log.user_agent}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-[10px] text-center py-4">Clique em "Carregar" para ver os logs</p>
+              )}
             </Card>
 
             {cloakerMessage && (
