@@ -7,16 +7,11 @@ import { Link } from "react-router-dom";
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-type PaymentMethod = "pix" | "card" | "boleto";
-
 const Checkout = () => {
   const { items, totalPrice, totalOriginalPrice, clearCart } = useCart();
-  const paymentMethod: PaymentMethod = "pix";
   const [step, setStep] = useState<"form" | "confirmation">("form");
 
   const discount = totalOriginalPrice - totalPrice;
-  const displayPrice = paymentMethod === "pix" ? totalPrice : totalOriginalPrice;
-  const installmentValue = totalOriginalPrice / 10;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
