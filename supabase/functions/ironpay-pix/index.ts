@@ -22,6 +22,8 @@ Deno.serve(async (req) => {
       customer_cpf,
       customer_phone,
       items,
+      title,
+      product_hash,
     } = body;
 
     if (!api_token) {
