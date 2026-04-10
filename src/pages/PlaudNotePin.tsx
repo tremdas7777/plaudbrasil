@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
+import { useCart } from "@/contexts/CartContext";
 
 const colorVariants = {
   Cinza: [
@@ -37,6 +38,7 @@ const colorOptions = [
 const PlaudNotePin = () => {
   const [selectedColor, setSelectedColor] = useState<keyof typeof colorVariants>("Cinza");
   const [selectedImage, setSelectedImage] = useState(0);
+  const { addItem } = useCart();
 
   const currentImages = colorVariants[selectedColor];
 
@@ -109,7 +111,17 @@ const PlaudNotePin = () => {
               </div>
             </div>
 
-            <button className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity">
+            <button
+              onClick={() => addItem({
+                id: `plaud-notepin-${selectedColor}`,
+                name: "Plaud NotePin",
+                color: selectedColor,
+                price: 1439.10,
+                originalPrice: 1599.00,
+                image: colorVariants[selectedColor][0],
+              })}
+              className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
+            >
               Adicionar ao carrinho
             </button>
           </div>
