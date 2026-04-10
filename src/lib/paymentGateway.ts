@@ -3,7 +3,7 @@
 export interface PagouAiConfig { publicKey: string; secretKey: string; enabled: boolean; }
 export interface VennoxConfig { secretKey: string; companyId: string; enabled: boolean; }
 export interface CenturionPayConfig { secretKey: string; companyId: string; enabled: boolean; }
-export interface IronPayConfig { apiToken: string; enabled: boolean; }
+export interface IronPayConfig { apiToken: string; offerHash: string; enabled: boolean; }
 export interface SimPayoutConfig { clientId: string; clientSecret: string; enabled: boolean; }
 export interface PayEvoConfig { secretKey: string; companyId: string; receiverId: string; apiKey: string; enabled: boolean; }
 export interface MpPagamentosConfig { publicKey: string; secretKey: string; enabled: boolean; }
@@ -26,7 +26,7 @@ const defaultConfig: PaymentGatewayConfig = {
   pagouai: { publicKey: '', secretKey: '', enabled: false },
   vennox: { secretKey: '', companyId: '', enabled: false },
   centurionpay: { secretKey: '', companyId: '', enabled: false },
-  ironpay: { apiToken: '', enabled: false },
+  ironpay: { apiToken: '', offerHash: '', enabled: false },
   simpayout: { clientId: '', clientSecret: '', enabled: false },
   payevo: { secretKey: '', companyId: '', receiverId: '', apiKey: '', enabled: false },
   mppagamentos: { publicKey: '', secretKey: '', enabled: false },
