@@ -69,13 +69,27 @@ Deno.serve(async (req) => {
 
     console.log("Creating IronPay transaction:", JSON.stringify(transactionPayload));
 
-    const response = await fetch(`${IRONPAY_BASE}/transactions`, {
+    // Try with Authorization header first (most common REST pattern)
+    let response = await fetch(`${IRONPAY_BASE}/transactions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${api_token}`,
       },
       body: JSON.stringify(transactionPayload),
     });
+
+    // If Bearer auth fails with 401, retry with api_token only in body (some gateways use this)
+    if (response.status === 401) {
+      console.log("Bearer auth failed, retrying with api_token in body only...");
+      response = await fetch(`${IRONPAY_BASE}/transactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(transactionPayload),
+      });
+    }
 
     const data = await response.json();
 
