@@ -2,13 +2,37 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 
-const productImages = [
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-6-6978e5f1c77c5.png",
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-3-6978e5c7388d4.jpg",
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/3-6978f1b5c0c04.png",
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/4-6978f1b5e15ee.png",
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/8-6978f1b813d14.png",
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/6-6978f1c2cf8ed.png",
+const colorVariants = {
+  Cinza: [
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-6-6978e5f1c77c5.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-3-6978e5c7388d4.jpg",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/3-6978f1b5c0c04.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/4-6978f1b5e15ee.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/8-6978f1b813d14.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/6-6978f1c2cf8ed.png",
+  ],
+  Azul: [
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-6-6978e60606240.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/navy-blue-plaud-note-dark-blue-case-phone-call-mode-male-executive-6978e5f959ff7.jpg",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/6-6978e622a0507.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/4-6978e61843c99.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/1-6978e61edcece.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/7-6978e61f12e0e.png",
+  ],
+  Preto: [
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-6-6978f02bd18e8.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/7-6978f12226bc5.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-6978f1153f667.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/5-6978f115cf523.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/4-6978f11586e3d.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/6-6978f122cae2f.png",
+  ],
+};
+
+const colorOptions = [
+  { name: "Cinza", cssColor: "bg-gray-400" },
+  { name: "Azul", cssColor: "bg-blue-800" },
+  { name: "Preto", cssColor: "bg-gray-900" },
 ];
 
 const specs = [
@@ -85,9 +109,16 @@ const useCases = [
 ];
 
 const PlaudNote = () => {
+  const [selectedColor, setSelectedColor] = useState<keyof typeof colorVariants>("Cinza");
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeUseCase, setActiveUseCase] = useState(0);
-  const [selectedColor, setSelectedColor] = useState("Cinza");
+
+  const currentImages = colorVariants[selectedColor];
+
+  const handleColorChange = (color: keyof typeof colorVariants) => {
+    setSelectedColor(color);
+    setSelectedImage(0);
+  };
 
   return (
     <Layout>
@@ -97,7 +128,7 @@ const PlaudNote = () => {
           {/* Gallery */}
           <div className="flex-1 flex gap-4">
             <div className="flex flex-col gap-2">
-              {productImages.map((img, i) => (
+              {currentImages.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
@@ -111,7 +142,7 @@ const PlaudNote = () => {
             </div>
             <div className="flex-1 bg-secondary rounded-2xl flex items-center justify-center p-8">
               <img
-                src={productImages[selectedImage]}
+                src={currentImages[selectedImage]}
                 alt="Plaud Note"
                 className="max-h-[400px] object-contain"
               />
@@ -140,18 +171,15 @@ const PlaudNote = () => {
             <div className="space-y-2">
               <p className="text-sm font-medium text-foreground">COR {selectedColor}</p>
               <div className="flex gap-3">
-                {["Cinza", "Azul", "Preto"].map((color) => (
+                {colorOptions.map((color) => (
                   <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`w-10 h-10 rounded-full border-2 transition-colors ${
-                      selectedColor === color ? "border-primary" : "border-border"
-                    } ${
-                      color === "Cinza"
-                        ? "bg-gray-400"
-                        : color === "Azul"
-                        ? "bg-blue-800"
-                        : "bg-gray-900"
+                    key={color.name}
+                    onClick={() => handleColorChange(color.name as keyof typeof colorVariants)}
+                    title={color.name}
+                    className={`w-10 h-10 rounded-full border-2 transition-colors ${color.cssColor} ${
+                      selectedColor === color.name
+                        ? "border-primary ring-2 ring-primary/30"
+                        : "border-border"
                     }`}
                   />
                 ))}
