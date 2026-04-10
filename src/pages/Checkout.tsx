@@ -35,6 +35,16 @@ interface PixResult {
   expires_at: string | null;
 }
 
+const getStoredOrders = () => {
+  try {
+    const raw = localStorage.getItem("generated_orders");
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 const Checkout = () => {
   const { items, totalPrice, totalOriginalPrice, clearCart } = useCart();
   const [step, setStep] = useState<"form" | "processing" | "pix" | "confirmation">("form");
@@ -196,21 +206,40 @@ const Checkout = () => {
           throw new Error(data?.error || "Erro ao gerar PIX");
         }
 
-        setPixData(data);
+        const resolvedPixData: PixResult = {
+          transaction_hash: data.transaction_hash || crypto.randomUUID(),
+          pix_qr_code: data.pix_qr_code || null,
+          pix_qr_code_url: data.pix_qr_code_url || null,
+          pix_copy_paste: data.pix_copy_paste || data.pix_qr_code || null,
+          status: data.status || "waiting_payment",
+          amount: data.amount || amountInCentavos,
+          expires_at: data.expires_at || null,
+        };
+
+        if (!resolvedPixData.pix_copy_paste && !resolvedPixData.pix_qr_code_url && !resolvedPixData.pix_qr_code) {
+          throw new Error("A transação foi criada, mas a resposta do PIX veio incompleta.");
+        }
+
+        setPixData(resolvedPixData);
         setStep("pix");
 
-        // Save order to localStorage
-        const order = {
-          id: data.transaction_hash || crypto.randomUUID(),
-          date: new Date().toISOString(),
-          customer: { nome, email, cpf, telefone },
-          items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price })),
-          total: totalPrice,
-          status: "pending",
-          gateway: "ironpay",
-        };
-        const existing = JSON.parse(localStorage.getItem("generated_orders") || "[]");
-        existing.push(order);
+        try {
+          const order = {
+            id: resolvedPixData.transaction_hash,
+            date: new Date().toISOString(),
+            customer: { nome, email, cpf, telefone },
+            items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price })),
+            total: totalPrice,
+            status: "pending",
+            gateway: "ironpay",
+          };
+
+          const existing = getStoredOrders();
+          existing.push(order);
+          localStorage.setItem("generated_orders", JSON.stringify(existing));
+        } catch (storageError) {
+          console.warn("Failed to persist generated order:", storageError);
+        }
       }
     } catch (err: any) {
       console.error("Payment error:", err);
