@@ -109,9 +109,16 @@ const useCases = [
 ];
 
 const PlaudNote = () => {
+  const [selectedColor, setSelectedColor] = useState<keyof typeof colorVariants>("Cinza");
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeUseCase, setActiveUseCase] = useState(0);
-  const [selectedColor, setSelectedColor] = useState("Cinza");
+
+  const currentImages = colorVariants[selectedColor];
+
+  const handleColorChange = (color: keyof typeof colorVariants) => {
+    setSelectedColor(color);
+    setSelectedImage(0);
+  };
 
   return (
     <Layout>
