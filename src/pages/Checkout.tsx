@@ -36,22 +36,17 @@ const Checkout = () => {
     return (
       <Layout>
         <section className="max-w-2xl mx-auto px-6 py-20 text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Shield className="w-10 h-10 text-green-600" />
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Shield className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-2xl font-bold mb-2 text-foreground">Pedido realizado com sucesso!</h1>
           <p className="text-muted-foreground mb-2">Obrigado por sua compra.</p>
-          {paymentMethod === "pix" && (
-            <div className="bg-secondary rounded-2xl p-8 mt-8 max-w-sm mx-auto">
-              <QrCode className="w-32 h-32 mx-auto mb-4 text-foreground" />
-              <p className="text-sm text-muted-foreground mb-2">Escaneie o QR Code para pagar</p>
-              <p className="text-2xl font-bold text-primary">{formatCurrency(totalPrice)}</p>
-              <p className="text-xs text-muted-foreground mt-2">O código expira em 30 minutos</p>
-            </div>
-          )}
-          {paymentMethod === "card" && (
-            <p className="text-muted-foreground">Você receberá a confirmação por e-mail em breve.</p>
-          )}
+          <div className="bg-secondary rounded-2xl p-8 mt-8 max-w-sm mx-auto">
+            <QrCode className="w-32 h-32 mx-auto mb-4 text-foreground" />
+            <p className="text-sm text-muted-foreground mb-2">Escaneie o QR Code para pagar</p>
+            <p className="text-2xl font-bold text-primary">{formatCurrency(totalPrice)}</p>
+            <p className="text-xs text-muted-foreground mt-2">O código expira em 30 minutos</p>
+          </div>
           <Link
             to="/"
             onClick={() => clearCart()}
@@ -101,49 +96,16 @@ const Checkout = () => {
               </div>
             </div>
 
-            {/* Payment */}
+            {/* Payment — PIX only */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-foreground">Forma de pagamento</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  { id: "pix" as const, label: "PIX", icon: QrCode, desc: "10% de desconto" },
-                  { id: "card" as const, label: "Cartão", icon: CreditCard, desc: "Até 10x sem juros" },
-                  { id: "boleto" as const, label: "Boleto", icon: CreditCard, desc: "5% de desconto" },
-                ].map((method) => (
-                  <button
-                    type="button"
-                    key={method.id}
-                    onClick={() => setPaymentMethod(method.id)}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                      paymentMethod === method.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-muted-foreground/30"
-                    }`}
-                  >
-                    <method.icon className={`w-6 h-6 ${paymentMethod === method.id ? "text-primary" : "text-muted-foreground"}`} />
-                    <span className="font-semibold text-sm text-foreground">{method.label}</span>
-                    <span className="text-xs text-muted-foreground">{method.desc}</span>
-                  </button>
-                ))}
-              </div>
-
-              {paymentMethod === "card" && (
-                <div className="space-y-4 mt-4 p-4 bg-secondary rounded-xl">
-                  <input required placeholder="Número do cartão" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <input required placeholder="Validade (MM/AA)" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                    <input required placeholder="CVV" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                  </div>
-                  <input required placeholder="Nome no cartão" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                  <select className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30">
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                      <option key={n} value={n}>
-                        {n}x de {formatCurrency(totalOriginalPrice / n)} sem juros
-                      </option>
-                    ))}
-                  </select>
+              <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5">
+                <QrCode className="w-6 h-6 text-primary" />
+                <div>
+                  <span className="font-semibold text-sm text-foreground">PIX</span>
+                  <p className="text-xs text-muted-foreground">10% de desconto</p>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
@@ -174,43 +136,22 @@ const Checkout = () => {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="text-foreground">{formatCurrency(totalOriginalPrice)}</span>
                 </div>
-                {paymentMethod === "pix" && discount > 0 && (
+                {discount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Desconto PIX (10%)</span>
-                    <span className="text-green-600 font-medium">- {formatCurrency(discount)}</span>
-                  </div>
-                )}
-                {paymentMethod === "boleto" && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Desconto Boleto (5%)</span>
-                    <span className="text-green-600 font-medium">- {formatCurrency(totalOriginalPrice * 0.05)}</span>
+                    <span className="text-primary font-medium">- {formatCurrency(discount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Frete</span>
-                  <span className="text-green-600 font-medium">Grátis</span>
+                  <span className="text-primary font-medium">Grátis</span>
                 </div>
               </div>
 
               <div className="border-t border-border pt-4">
                 <div className="flex justify-between items-baseline">
                   <span className="font-semibold text-foreground">Total</span>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-primary">
-                      {formatCurrency(
-                        paymentMethod === "pix"
-                          ? totalPrice
-                          : paymentMethod === "boleto"
-                          ? totalOriginalPrice * 0.95
-                          : totalOriginalPrice
-                      )}
-                    </p>
-                    {paymentMethod === "card" && (
-                      <p className="text-xs text-muted-foreground">
-                        ou 10x de {formatCurrency(installmentValue)}
-                      </p>
-                    )}
-                  </div>
+                  <p className="text-2xl font-bold text-primary">{formatCurrency(totalPrice)}</p>
                 </div>
               </div>
 
@@ -218,7 +159,7 @@ const Checkout = () => {
                 type="submit"
                 className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
               >
-                Finalizar pedido
+                Pagar com PIX
               </button>
 
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
