@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cloaker_config: {
+        Row: {
+          enabled: boolean
+          facebook_enabled: boolean
+          google_enabled: boolean
+          id: string
+          tiktok_enabled: boolean
+          updated_at: string | null
+        }
+        Insert: {
+          enabled?: boolean
+          facebook_enabled?: boolean
+          google_enabled?: boolean
+          id?: string
+          tiktok_enabled?: boolean
+          updated_at?: string | null
+        }
+        Update: {
+          enabled?: boolean
+          facebook_enabled?: boolean
+          google_enabled?: boolean
+          id?: string
+          tiktok_enabled?: boolean
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      cloaker_logs: {
+        Row: {
+          blocked: boolean | null
+          confidence: number | null
+          created_at: string | null
+          id: string
+          ip: string | null
+          reason: string | null
+          signals: Json | null
+          user_agent: string | null
+        }
+        Insert: {
+          blocked?: boolean | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          ip?: string | null
+          reason?: string | null
+          signals?: Json | null
+          user_agent?: string | null
+        }
+        Update: {
+          blocked?: boolean | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          ip?: string | null
+          reason?: string | null
+          signals?: Json | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
