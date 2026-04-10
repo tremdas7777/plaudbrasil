@@ -348,7 +348,31 @@ const Checkout = () => {
               <h2 className="text-lg font-semibold text-foreground">Dados pessoais</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input required value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <input required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" type="email" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <div ref={emailRef} className="relative">
+                  <input
+                    required
+                    value={email}
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    onFocus={() => { if (emailSuggestions.length > 0) setShowEmailSuggestions(true); }}
+                    placeholder="E-mail"
+                    type="email"
+                    autoComplete="off"
+                    className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                  {showEmailSuggestions && (
+                    <ul className="absolute z-50 top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden">
+                      {emailSuggestions.slice(0, 5).map((s) => (
+                        <li
+                          key={s}
+                          onClick={() => selectEmailSuggestion(s)}
+                          className="px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 cursor-pointer transition-colors"
+                        >
+                          {s}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 <input required value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="CPF" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
                 <input required value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="Telefone" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
