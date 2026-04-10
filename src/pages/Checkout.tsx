@@ -55,7 +55,73 @@ const Checkout = () => {
   const [bairro, setBairro] = useState("");
   const [estado, setEstado] = useState("");
 
+  const [emailSuggestions, setEmailSuggestions] = useState<string[]>([]);
+  const [showEmailSuggestions, setShowEmailSuggestions] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
+  const emailRef = useRef<HTMLDivElement>(null);
+
   const discount = totalOriginalPrice - totalPrice;
+
+  // Close email suggestions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (emailRef.current && !emailRef.current.contains(e.target as Node)) {
+        setShowEmailSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Email autocomplete
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    const atIndex = value.indexOf("@");
+    if (atIndex > 0) {
+      const typed = value.slice(atIndex + 1).toLowerCase();
+      const matches = EMAIL_DOMAINS.filter((d) => d.startsWith(typed) && d !== typed);
+      setEmailSuggestions(matches.map((d) => value.slice(0, atIndex + 1) + d));
+      setShowEmailSuggestions(matches.length > 0);
+    } else {
+      setShowEmailSuggestions(false);
+    }
+  };
+
+  const selectEmailSuggestion = (suggestion: string) => {
+    setEmail(suggestion);
+    setShowEmailSuggestions(false);
+  };
+
+  // CEP auto-fill via ViaCEP
+  const fetchCep = useCallback(async (cepValue: string) => {
+    const clean = cepValue.replace(/\D/g, "");
+    if (clean.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        if (data.logradouro) setRua(data.logradouro);
+        if (data.bairro) setBairro(data.bairro);
+        if (data.localidade) setCidade(data.localidade);
+        if (data.uf) setEstado(data.uf);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setCepLoading(false);
+    }
+  }, []);
+
+  const handleCepChange = (value: string) => {
+    // Format CEP as 00000-000
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+    const formatted = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+    setCep(formatted);
+    if (digits.length === 8) {
+      fetchCep(digits);
+    }
+  };
 
   const handleCopyPix = async () => {
     if (pixData?.pix_copy_paste) {
