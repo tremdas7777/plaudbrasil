@@ -171,18 +171,15 @@ const PlaudNote = () => {
             <div className="space-y-2">
               <p className="text-sm font-medium text-foreground">COR {selectedColor}</p>
               <div className="flex gap-3">
-                {["Cinza", "Azul", "Preto"].map((color) => (
+                {colorOptions.map((color) => (
                   <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`w-10 h-10 rounded-full border-2 transition-colors ${
-                      selectedColor === color ? "border-primary" : "border-border"
-                    } ${
-                      color === "Cinza"
-                        ? "bg-gray-400"
-                        : color === "Azul"
-                        ? "bg-blue-800"
-                        : "bg-gray-900"
+                    key={color.name}
+                    onClick={() => handleColorChange(color.name as keyof typeof colorVariants)}
+                    title={color.name}
+                    className={`w-10 h-10 rounded-full border-2 transition-colors ${color.cssColor} ${
+                      selectedColor === color.name
+                        ? "border-primary ring-2 ring-primary/30"
+                        : "border-border"
                     }`}
                   />
                 ))}
