@@ -152,6 +152,9 @@ const Checkout = () => {
     try {
       const gatewayConfig = getPaymentGatewayConfig();
 
+      const cleanCpf = cpf.replace(/\D/g, "");
+      const cleanPhone = telefone.replace(/\D/g, "");
+
       // Check if IronPay is the active gateway
       if (gatewayConfig.activeGateway === "ironpay" && gatewayConfig.ironpay.enabled && gatewayConfig.ironpay.apiToken) {
         setStep("processing");
@@ -164,8 +167,8 @@ const Checkout = () => {
             amount: amountInCentavos,
             customer_name: nome,
             customer_email: email,
-            customer_cpf: cpf,
-            customer_phone: telefone,
+            customer_cpf: cleanCpf,
+            customer_phone: cleanPhone,
             items: items.map((item) => ({
               name: item.name,
               quantity: item.quantity,
