@@ -313,15 +313,17 @@ Deno.serve(async (req) => {
     }
 
     // === LAYER 10: Fingerprint Cross-Validation ===
-    if (!isBot && fingerprint && Object.keys(fingerprint).length > 0) {
+    // Only run if actual fingerprint fields are present (screenWidth indicates real fingerprint data)
+    const hasRealFingerprint = fingerprint && ('screenWidth' in fingerprint || 'pixelRatio' in fingerprint || 'colorDepth' in fingerprint);
+    if (!isBot && hasRealFingerprint) {
       let suspicionScore = 0;
       if (fingerprint.pluginCount === 0 && userAgent.includes('chrome') && !userAgent.includes('mobile')) suspicionScore += 25;
-      if (fingerprint.colorDepth && fingerprint.colorDepth < 15) suspicionScore += 20;
-      if (!fingerprint.pixelRatio || fingerprint.pixelRatio === 0) suspicionScore += 30;
-      if (/mobi|android|iphone/i.test(userAgent) && !fingerprint.hasTouch) suspicionScore += 35;
-      if (fingerprint.hardwareConcurrency && fingerprint.hardwareConcurrency < 2) suspicionScore += 15;
-      if (!fingerprint.timezone) suspicionScore += 20;
-      if (!fingerprint.languages || fingerprint.languages.length === 0) suspicionScore += 25;
+      if ('colorDepth' in fingerprint && fingerprint.colorDepth < 15) suspicionScore += 20;
+      if ('pixelRatio' in fingerprint && (!fingerprint.pixelRatio || fingerprint.pixelRatio === 0)) suspicionScore += 30;
+      if (/mobi|android|iphone/i.test(userAgent) && 'hasTouch' in fingerprint && !fingerprint.hasTouch) suspicionScore += 35;
+      if ('hardwareConcurrency' in fingerprint && fingerprint.hardwareConcurrency < 2) suspicionScore += 15;
+      if ('timezone' in fingerprint && !fingerprint.timezone) suspicionScore += 20;
+      if ('languages' in fingerprint && (!fingerprint.languages || fingerprint.languages.length === 0)) suspicionScore += 25;
       if (fingerprint.isTikTokWebView) suspicionScore += 40;
 
       if (suspicionScore >= 50) {
