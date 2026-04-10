@@ -2,13 +2,37 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Link } from "react-router-dom";
 
-const productImages = [
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-6-6978e5f1c77c5.png",
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-3-6978e5c7388d4.jpg",
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/3-6978f1b5c0c04.png",
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/4-6978f1b5e15ee.png",
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/8-6978f1b813d14.png",
-  "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/6-6978f1c2cf8ed.png",
+const colorVariants = {
+  Cinza: [
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-6-6978e5f1c77c5.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-3-6978e5c7388d4.jpg",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/3-6978f1b5c0c04.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/4-6978f1b5e15ee.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/8-6978f1b813d14.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/6-6978f1c2cf8ed.png",
+  ],
+  Azul: [
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-6-6978e60606240.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/navy-blue-plaud-note-dark-blue-case-phone-call-mode-male-executive-6978e5f959ff7.jpg",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/6-6978e622a0507.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/4-6978e61843c99.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/1-6978e61edcece.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/7-6978e61f12e0e.png",
+  ],
+  Preto: [
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-6-6978f02bd18e8.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/7-6978f12226bc5.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-6978f1153f667.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/5-6978f115cf523.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/4-6978f11586e3d.png",
+    "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/6-6978f122cae2f.png",
+  ],
+};
+
+const colorOptions = [
+  { name: "Cinza", cssColor: "bg-gray-400" },
+  { name: "Azul", cssColor: "bg-blue-800" },
+  { name: "Preto", cssColor: "bg-gray-900" },
 ];
 
 const specs = [
