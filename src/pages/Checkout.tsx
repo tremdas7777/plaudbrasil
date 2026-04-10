@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useCart } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
 import { ChevronLeft, QrCode, Shield, Lock, Copy, Check, Loader2 } from "lucide-react";
@@ -6,6 +6,21 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaymentGatewayConfig } from "@/lib/paymentGateway";
 import { toast } from "sonner";
+
+const EMAIL_DOMAINS = [
+  "gmail.com",
+  "hotmail.com",
+  "outlook.com",
+  "yahoo.com.br",
+  "yahoo.com",
+  "icloud.com",
+  "live.com",
+  "uol.com.br",
+  "bol.com.br",
+  "terra.com.br",
+  "globo.com",
+  "protonmail.com",
+];
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
