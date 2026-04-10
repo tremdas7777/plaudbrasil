@@ -155,8 +155,11 @@ const Checkout = () => {
       const cleanCpf = cpf.replace(/\D/g, "");
       const cleanPhone = telefone.replace(/\D/g, "");
 
-      // Check if IronPay is the active gateway
-      if (gatewayConfig.activeGateway === "ironpay" && gatewayConfig.ironpay.enabled && gatewayConfig.ironpay.apiToken) {
+      console.log("Gateway config:", JSON.stringify(gatewayConfig));
+
+      // Check if IronPay is configured (active + has token)
+      const ironpayReady = gatewayConfig.activeGateway === "ironpay" && gatewayConfig.ironpay.apiToken;
+      if (ironpayReady) {
         setStep("processing");
 
         const amountInCentavos = Math.round(totalPrice * 100);
