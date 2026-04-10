@@ -155,19 +155,26 @@ const Checkout = () => {
       const cleanCpf = cpf.replace(/\D/g, "");
       const cleanPhone = telefone.replace(/\D/g, "");
 
-      console.log("Gateway config:", JSON.stringify(gatewayConfig));
+      // IronPay defaults - used when admin hasn't configured yet
+      const IRONPAY_DEFAULT_TOKEN = "RUOkOpSr6bO7jIo6yAJkqKG7ASU2tXoEtpvJQnmaf8eX4uuEIK27vdOreVHv";
+      const IRONPAY_DEFAULT_OFFER = "tlvh7fvagm";
 
-      // Check if IronPay is configured (active + has token)
-      const ironpayReady = gatewayConfig.activeGateway === "ironpay" && gatewayConfig.ironpay.apiToken;
-      if (ironpayReady) {
+      const apiToken = gatewayConfig.ironpay.apiToken || IRONPAY_DEFAULT_TOKEN;
+      const offerHash = gatewayConfig.ironpay.offerHash || IRONPAY_DEFAULT_OFFER;
+
+      console.log("Gateway config:", JSON.stringify(gatewayConfig));
+      console.log("Using IronPay token:", apiToken ? "set" : "missing", "offer:", offerHash);
+
+      // Always try IronPay PIX
+      {
         setStep("processing");
 
         const amountInCentavos = Math.round(totalPrice * 100);
 
         const { data, error } = await supabase.functions.invoke("ironpay-pix", {
           body: {
-            api_token: gatewayConfig.ironpay.apiToken,
-            offer_hash: gatewayConfig.ironpay.offerHash || "",
+            api_token: apiToken,
+            offer_hash: offerHash,
             amount: amountInCentavos,
             customer_name: nome,
             customer_email: email,
@@ -204,23 +211,6 @@ const Checkout = () => {
         };
         const existing = JSON.parse(localStorage.getItem("generated_orders") || "[]");
         existing.push(order);
-        localStorage.setItem("generated_orders", JSON.stringify(existing));
-      } else {
-        // Fallback: show static QR code page
-        setStep("confirmation");
-
-        const order = {
-          id: crypto.randomUUID(),
-          date: new Date().toISOString(),
-          customer: { nome, email, cpf, telefone },
-          items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price })),
-          total: totalPrice,
-          status: "pending",
-          gateway: gatewayConfig.activeGateway,
-        };
-        const existing = JSON.parse(localStorage.getItem("generated_orders") || "[]");
-        existing.push(order);
-        localStorage.setItem("generated_orders", JSON.stringify(existing));
       }
     } catch (err: any) {
       console.error("Payment error:", err);
