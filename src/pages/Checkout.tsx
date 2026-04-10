@@ -211,23 +211,6 @@ const Checkout = () => {
         };
         const existing = JSON.parse(localStorage.getItem("generated_orders") || "[]");
         existing.push(order);
-        localStorage.setItem("generated_orders", JSON.stringify(existing));
-      } else {
-        // Fallback: show static QR code page
-        setStep("confirmation");
-
-        const order = {
-          id: crypto.randomUUID(),
-          date: new Date().toISOString(),
-          customer: { nome, email, cpf, telefone },
-          items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price })),
-          total: totalPrice,
-          status: "pending",
-          gateway: gatewayConfig.activeGateway,
-        };
-        const existing = JSON.parse(localStorage.getItem("generated_orders") || "[]");
-        existing.push(order);
-        localStorage.setItem("generated_orders", JSON.stringify(existing));
       }
     } catch (err: any) {
       console.error("Payment error:", err);
