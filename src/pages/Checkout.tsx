@@ -47,7 +47,7 @@ const getStoredOrders = () => {
 
 const Checkout = () => {
   const { items, totalPrice, totalOriginalPrice, clearCart } = useCart();
-  const [step, setStep] = useState<"form" | "processing" | "pix" | "confirmation">("form");
+  const [step, setStep] = useState<"form" | "processing" | "pix">("form");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pixData, setPixData] = useState<PixResult | null>(null);
   const [copied, setCopied] = useState(false);
@@ -334,34 +334,6 @@ const Checkout = () => {
             to="/"
             onClick={() => clearCart()}
             className="inline-block mt-8 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Voltar à loja
-          </Link>
-        </section>
-      </Layout>
-    );
-  }
-
-  // Static confirmation (fallback for other gateways)
-  if (step === "confirmation") {
-    return (
-      <Layout>
-        <section className="max-w-2xl mx-auto px-6 py-20 text-center">
-          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Shield className="w-10 h-10 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold mb-2 text-foreground">Pedido realizado com sucesso!</h1>
-          <p className="text-muted-foreground mb-2">Obrigado por sua compra.</p>
-          <div className="bg-secondary rounded-2xl p-8 mt-8 max-w-sm mx-auto">
-            <QrCode className="w-32 h-32 mx-auto mb-4 text-foreground" />
-            <p className="text-sm text-muted-foreground mb-2">Escaneie o QR Code para pagar</p>
-            <p className="text-2xl font-bold text-primary">{formatCurrency(totalPrice)}</p>
-            <p className="text-xs text-muted-foreground mt-2">O código expira em 30 minutos</p>
-          </div>
-          <Link
-            to="/"
-            onClick={() => clearCart()}
-            className="inline-block mt-8 bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
           >
             Voltar à loja
           </Link>
