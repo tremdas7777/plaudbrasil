@@ -1,24 +1,136 @@
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
-import { ChevronLeft, QrCode, Shield, Lock } from "lucide-react";
+import { ChevronLeft, QrCode, Shield, Lock, Copy, Check, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { getPaymentGatewayConfig } from "@/lib/paymentGateway";
+import { toast } from "sonner";
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+interface PixResult {
+  transaction_hash: string;
+  pix_qr_code: string | null;
+  pix_qr_code_url: string | null;
+  pix_copy_paste: string | null;
+  status: string;
+  amount: number;
+  expires_at: string | null;
+}
+
 const Checkout = () => {
   const { items, totalPrice, totalOriginalPrice, clearCart } = useCart();
-  const [step, setStep] = useState<"form" | "confirmation">("form");
+  const [step, setStep] = useState<"form" | "processing" | "pix" | "confirmation">("form");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pixData, setPixData] = useState<PixResult | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Form fields
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [cep, setCep] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [rua, setRua] = useState("");
+  const [numero, setNumero] = useState("");
+  const [complemento, setComplemento] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [estado, setEstado] = useState("");
 
   const discount = totalOriginalPrice - totalPrice;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setStep("confirmation");
+  const handleCopyPix = async () => {
+    if (pixData?.pix_copy_paste) {
+      await navigator.clipboard.writeText(pixData.pix_copy_paste);
+      setCopied(true);
+      toast.success("Código PIX copiado!");
+      setTimeout(() => setCopied(false), 3000);
+    }
   };
 
-  if (items.length === 0 && step !== "confirmation") {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const gatewayConfig = getPaymentGatewayConfig();
+
+      // Check if IronPay is the active gateway
+      if (gatewayConfig.activeGateway === "ironpay" && gatewayConfig.ironpay.enabled && gatewayConfig.ironpay.apiToken) {
+        setStep("processing");
+
+        const amountInCentavos = Math.round(totalPrice * 100);
+
+        const { data, error } = await supabase.functions.invoke("ironpay-pix", {
+          body: {
+            api_token: gatewayConfig.ironpay.apiToken,
+            amount: amountInCentavos,
+            customer_name: nome,
+            customer_email: email,
+            customer_cpf: cpf,
+            customer_phone: telefone,
+            items: items.map((item) => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: Math.round(item.price * 100),
+            })),
+          },
+        });
+
+        if (error) {
+          throw new Error(error.message || "Erro ao processar pagamento");
+        }
+
+        if (!data?.success) {
+          throw new Error(data?.error || "Erro ao gerar PIX");
+        }
+
+        setPixData(data);
+        setStep("pix");
+
+        // Save order to localStorage
+        const order = {
+          id: data.transaction_hash || crypto.randomUUID(),
+          date: new Date().toISOString(),
+          customer: { nome, email, cpf, telefone },
+          items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price })),
+          total: totalPrice,
+          status: "pending",
+          gateway: "ironpay",
+        };
+        const existing = JSON.parse(localStorage.getItem("generated_orders") || "[]");
+        existing.push(order);
+        localStorage.setItem("generated_orders", JSON.stringify(existing));
+      } else {
+        // Fallback: show static QR code page
+        setStep("confirmation");
+
+        const order = {
+          id: crypto.randomUUID(),
+          date: new Date().toISOString(),
+          customer: { nome, email, cpf, telefone },
+          items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price })),
+          total: totalPrice,
+          status: "pending",
+          gateway: gatewayConfig.activeGateway,
+        };
+        const existing = JSON.parse(localStorage.getItem("generated_orders") || "[]");
+        existing.push(order);
+        localStorage.setItem("generated_orders", JSON.stringify(existing));
+      }
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      toast.error(err.message || "Erro ao processar pagamento. Tente novamente.");
+      setStep("form");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (items.length === 0 && step === "form") {
     return (
       <Layout>
         <section className="max-w-2xl mx-auto px-6 py-20 text-center">
@@ -32,6 +144,85 @@ const Checkout = () => {
     );
   }
 
+  // Processing state
+  if (step === "processing") {
+    return (
+      <Layout>
+        <section className="max-w-2xl mx-auto px-6 py-20 text-center">
+          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-6" />
+          <h1 className="text-2xl font-bold mb-2 text-foreground">Gerando seu PIX...</h1>
+          <p className="text-muted-foreground">Aguarde enquanto processamos seu pagamento.</p>
+        </section>
+      </Layout>
+    );
+  }
+
+  // PIX payment screen (from IronPay)
+  if (step === "pix" && pixData) {
+    return (
+      <Layout>
+        <section className="max-w-2xl mx-auto px-6 py-12 text-center">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <QrCode className="w-10 h-10 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2 text-foreground">Pague com PIX</h1>
+          <p className="text-muted-foreground mb-6">Escaneie o QR Code ou copie o código para pagar</p>
+
+          <div className="bg-secondary rounded-2xl p-8 max-w-sm mx-auto space-y-4">
+            {pixData.pix_qr_code_url ? (
+              <img
+                src={pixData.pix_qr_code_url}
+                alt="QR Code PIX"
+                className="w-48 h-48 mx-auto rounded-lg"
+              />
+            ) : pixData.pix_qr_code ? (
+              <img
+                src={`data:image/png;base64,${pixData.pix_qr_code}`}
+                alt="QR Code PIX"
+                className="w-48 h-48 mx-auto rounded-lg"
+              />
+            ) : (
+              <QrCode className="w-32 h-32 mx-auto text-foreground" />
+            )}
+
+            <p className="text-2xl font-bold text-primary">{formatCurrency(totalPrice)}</p>
+
+            {pixData.pix_copy_paste && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Código PIX copia e cola:</p>
+                <div className="bg-background border border-border rounded-lg p-3 text-xs font-mono break-all text-foreground max-h-20 overflow-y-auto">
+                  {pixData.pix_copy_paste}
+                </div>
+                <button
+                  onClick={handleCopyPix}
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
+                >
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {copied ? "Copiado!" : "Copiar código"}
+                </button>
+              </div>
+            )}
+
+            {pixData.expires_at && (
+              <p className="text-xs text-muted-foreground">
+                Expira em: {new Date(pixData.expires_at).toLocaleString("pt-BR")}
+              </p>
+            )}
+          </div>
+
+          <Link
+            to="/"
+            onClick={() => clearCart()}
+            className="inline-block mt-8 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Voltar à loja
+          </Link>
+        </section>
+      </Layout>
+    );
+  }
+
+  // Static confirmation (fallback for other gateways)
   if (step === "confirmation") {
     return (
       <Layout>
@@ -75,10 +266,10 @@ const Checkout = () => {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-foreground">Dados pessoais</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input required placeholder="Nome completo" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <input required placeholder="E-mail" type="email" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <input required placeholder="CPF" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <input required placeholder="Telefone" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input required value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" type="email" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input required value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="CPF" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input required value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="Telefone" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
             </div>
 
@@ -86,13 +277,13 @@ const Checkout = () => {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-foreground">Endereço de entrega</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input required placeholder="CEP" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <input required placeholder="Cidade" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <input required placeholder="Rua" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 sm:col-span-2" />
-                <input required placeholder="Número" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <input placeholder="Complemento" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <input required placeholder="Bairro" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <input required placeholder="Estado" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input required value={cep} onChange={(e) => setCep(e.target.value)} placeholder="CEP" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input required value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Cidade" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input required value={rua} onChange={(e) => setRua(e.target.value)} placeholder="Rua" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 sm:col-span-2" />
+                <input required value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="Número" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Complemento" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input required value={bairro} onChange={(e) => setBairro(e.target.value)} placeholder="Bairro" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input required value={estado} onChange={(e) => setEstado(e.target.value)} placeholder="Estado" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
             </div>
 
@@ -157,9 +348,17 @@ const Checkout = () => {
 
               <button
                 type="submit"
-                className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
+                disabled={isSubmitting}
+                className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                Pagar com PIX
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  "Pagar com PIX"
+                )}
               </button>
 
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
