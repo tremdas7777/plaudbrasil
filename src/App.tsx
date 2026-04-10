@@ -10,6 +10,7 @@ import PlaudNote from "./pages/PlaudNote.tsx";
 import PlaudNotePin from "./pages/PlaudNotePin.tsx";
 import Checkout from "./pages/Checkout.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import AdminPanel from "./pages/AdminPanel.tsx";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/plaud-note" element={<PlaudNote />} />
             <Route path="/plaud-notepin" element={<PlaudNotePin />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/admin" element={<AdminPanel />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </CartProvider>
