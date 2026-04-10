@@ -267,15 +267,15 @@ const Checkout = () => {
           <p className="text-muted-foreground mb-6">Escaneie o QR Code ou copie o código para pagar</p>
 
           <div className="bg-secondary rounded-2xl p-8 max-w-sm mx-auto space-y-4">
-            {pixData.pix_qr_code_url ? (
+            {pixData.pix_copy_paste ? (
               <img
-                src={pixData.pix_qr_code_url}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixData.pix_copy_paste)}`}
                 alt="QR Code PIX"
                 className="w-48 h-48 mx-auto rounded-lg"
               />
-            ) : pixData.pix_qr_code ? (
+            ) : pixData.pix_qr_code_url ? (
               <img
-                src={`data:image/png;base64,${pixData.pix_qr_code}`}
+                src={pixData.pix_qr_code_url}
                 alt="QR Code PIX"
                 className="w-48 h-48 mx-auto rounded-lg"
               />
