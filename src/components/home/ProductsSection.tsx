@@ -73,9 +73,9 @@ const products: Product[] = [
     available: false,
     colors: [
       {
-        name: "Cinza",
-        cssColor: "bg-gray-400",
-        img: "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/692dac1110a94/2-6-6978e5f1c77c5.png",
+        name: "Preto",
+        cssColor: "bg-gray-900",
+        img: "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/69ceb5d14dea9/plaud_note_pro-front-black_74a97c88-375f-4daa-9fc0-728d21b74fd9-69ceb6e7a2db2.webp",
       },
     ],
   },
@@ -87,9 +87,9 @@ const products: Product[] = [
     available: false,
     colors: [
       {
-        name: "Cinza",
-        cssColor: "bg-gray-400",
-        img: "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/685573935ce4f/gray_1-6865433e16327-687a7dd827363.webp",
+        name: "Preto",
+        cssColor: "bg-gray-900",
+        img: "https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/produtos/69ceba7e9d194/plaunotepins-69cec0516998b.webp",
       },
     ],
   },
