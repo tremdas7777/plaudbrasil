@@ -56,6 +56,9 @@ Deno.serve(async (req) => {
     const transactionPayload: Record<string, unknown> = {
       api_token,
       offer_hash: offer_hash || "",
+      product_hash: product_hash || offer_hash || "",
+      title: title || "Pedido",
+      operation_type: "sale",
       cart,
       payment_method: "pix",
       amount,
