@@ -164,6 +164,7 @@ const Checkout = () => {
         const { data, error } = await supabase.functions.invoke("ironpay-pix", {
           body: {
             api_token: gatewayConfig.ironpay.apiToken,
+            offer_hash: gatewayConfig.ironpay.offerHash || "",
             amount: amountInCentavos,
             customer_name: nome,
             customer_email: email,

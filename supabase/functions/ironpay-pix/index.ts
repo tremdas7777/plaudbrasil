@@ -15,6 +15,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const {
       api_token,
+      offer_hash,
       amount,
       customer_name,
       customer_email,
@@ -30,13 +31,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!amount || amount <= 0) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Valor inválido" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     if (!customer_name || !customer_email || !customer_cpf) {
       return new Response(
         JSON.stringify({ success: false, error: "Nome, email e CPF são obrigatórios" }),
@@ -44,30 +38,34 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Build payload per IronPay docs: api_token goes in the body
+    const cleanCpf = customer_cpf.replace(/\D/g, "");
+    const cleanPhone = customer_phone?.replace(/\D/g, "") || "";
+
+    // Build cart from items
+    const cart = items && items.length > 0
+      ? items.map((item: { name: string; quantity: number; price: number }) => ({
+          offer_hash: offer_hash || "",
+          quantity: item.quantity,
+        }))
+      : [{ offer_hash: offer_hash || "", quantity: 1 }];
+
+    // Build payload per IronPay API requirements
     const transactionPayload: Record<string, unknown> = {
       api_token,
-      amount,
+      offer_hash: offer_hash || "",
+      cart,
       payment_method: "pix",
+      amount,
       customer: {
         name: customer_name,
         email: customer_email,
-        document: customer_cpf.replace(/\D/g, ""),
-        phone: customer_phone?.replace(/\D/g, "") || "",
+        document: cleanCpf,
+        phone: cleanPhone,
       },
     };
 
-    if (items && items.length > 0) {
-      transactionPayload.items = items.map((item: { name: string; quantity: number; price: number }) => ({
-        name: item.name,
-        quantity: item.quantity,
-        unit_price: item.price,
-      }));
-    }
-
     console.log("IronPay request payload:", JSON.stringify(transactionPayload));
 
-    // IronPay docs: api_token is sent as a body parameter
     const response = await fetch(`${IRONPAY_BASE}/transactions`, {
       method: "POST",
       headers: {
@@ -93,7 +91,7 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       const errorMsg = (data.message as string) || (data.error as string) || `IronPay retornou status ${response.status}`;
-      console.error("IronPay error:", errorMsg);
+      console.error("IronPay error:", errorMsg, JSON.stringify(data));
       return new Response(
         JSON.stringify({
           success: false,
