@@ -373,8 +373,21 @@ const Checkout = () => {
                     </ul>
                   )}
                 </div>
-                <input required value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="CPF" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <input required value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="Telefone" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input required value={cpf} onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+                  let formatted = digits;
+                  if (digits.length > 9) formatted = `${digits.slice(0,3)}.${digits.slice(3,6)}.${digits.slice(6,9)}-${digits.slice(9)}`;
+                  else if (digits.length > 6) formatted = `${digits.slice(0,3)}.${digits.slice(3,6)}.${digits.slice(6)}`;
+                  else if (digits.length > 3) formatted = `${digits.slice(0,3)}.${digits.slice(3)}`;
+                  setCpf(formatted);
+                }} placeholder="CPF" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input required value={telefone} onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+                  let formatted = digits;
+                  if (digits.length > 6) formatted = `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`;
+                  else if (digits.length > 2) formatted = `(${digits.slice(0,2)}) ${digits.slice(2)}`;
+                  setTelefone(formatted);
+                }} placeholder="Telefone (00) 00000-0000" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
             </div>
 
