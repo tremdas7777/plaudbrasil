@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
-import { ChevronLeft, CreditCard, QrCode, Shield, Lock } from "lucide-react";
+import { ChevronLeft, QrCode, Shield, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const formatCurrency = (value: number) =>
