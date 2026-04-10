@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
+import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
 
 const colorVariants = {
@@ -112,6 +113,7 @@ const PlaudNote = () => {
   const [selectedColor, setSelectedColor] = useState<keyof typeof colorVariants>("Cinza");
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeUseCase, setActiveUseCase] = useState(0);
+  const { addItem } = useCart();
 
   const currentImages = colorVariants[selectedColor];
 
@@ -186,7 +188,17 @@ const PlaudNote = () => {
               </div>
             </div>
 
-            <button className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity">
+            <button
+              onClick={() => addItem({
+                id: `plaud-note-${selectedColor}`,
+                name: "Plaud Note",
+                color: selectedColor,
+                price: 1259.10,
+                originalPrice: 1399.00,
+                image: colorVariants[selectedColor][0],
+              })}
+              className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
+            >
               Adicionar ao carrinho
             </button>
           </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
 
 const navLinks = [
   { label: "Plaud Note", href: "/plaud-note" },
@@ -12,6 +13,7 @@ const navLinks = [
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { totalItems, setIsOpen } = useCart();
 
   return (
     <header className="sticky top-0 z-50 bg-background border-b border-border">
@@ -43,8 +45,13 @@ const Header = () => {
           <button className="text-foreground hover:text-muted-foreground transition-colors">
             <User size={20} />
           </button>
-          <button className="text-foreground hover:text-muted-foreground transition-colors">
+          <button onClick={() => setIsOpen(true)} className="relative text-foreground hover:text-muted-foreground transition-colors">
             <ShoppingBag size={20} />
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
           </button>
           <button
             className="md:hidden text-foreground"
