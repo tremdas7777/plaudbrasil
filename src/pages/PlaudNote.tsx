@@ -128,7 +128,7 @@ const PlaudNote = () => {
           {/* Gallery */}
           <div className="flex-1 flex gap-4">
             <div className="flex flex-col gap-2">
-              {productImages.map((img, i) => (
+              {currentImages.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
@@ -142,7 +142,7 @@ const PlaudNote = () => {
             </div>
             <div className="flex-1 bg-secondary rounded-2xl flex items-center justify-center p-8">
               <img
-                src={productImages[selectedImage]}
+                src={currentImages[selectedImage]}
                 alt="Plaud Note"
                 className="max-h-[400px] object-contain"
               />
