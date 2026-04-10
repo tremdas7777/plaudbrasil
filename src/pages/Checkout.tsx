@@ -11,7 +11,7 @@ type PaymentMethod = "pix" | "card" | "boleto";
 
 const Checkout = () => {
   const { items, totalPrice, totalOriginalPrice, clearCart } = useCart();
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
+  const paymentMethod: PaymentMethod = "pix";
   const [step, setStep] = useState<"form" | "confirmation">("form");
 
   const discount = totalOriginalPrice - totalPrice;
