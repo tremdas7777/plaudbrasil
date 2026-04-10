@@ -49,11 +49,11 @@ Deno.serve(async (req) => {
           offer_hash: offer_hash || "",
           product_hash: product_hash || offer_hash || "",
           title: item.name || "Produto",
-          operation_type: "sale",
+          operation_type: "1",
           quantity: item.quantity,
           price: item.price,
         }))
-      : [{ offer_hash: offer_hash || "", product_hash: product_hash || offer_hash || "", title: title || "Pedido", operation_type: "sale", quantity: 1, price: amount }];
+      : [{ offer_hash: offer_hash || "", product_hash: product_hash || offer_hash || "", title: title || "Pedido", operation_type: "1", quantity: 1, price: amount }];
 
     // Build payload per IronPay API requirements
     const transactionPayload: Record<string, unknown> = {
