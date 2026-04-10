@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
       offer_hash: offer_hash || "",
       product_hash: product_hash || offer_hash || "",
       title: title || "Pedido",
-      operation_type: "sale",
+      operation_type: "1",
       cart,
       payment_method: "pix",
       amount,
