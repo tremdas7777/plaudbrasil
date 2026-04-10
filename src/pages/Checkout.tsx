@@ -134,6 +134,19 @@ const Checkout = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const phoneDigits = telefone.replace(/\D/g, "");
+    if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+      toast.error("Telefone inválido. Use (DD) 00000-0000.");
+      return;
+    }
+
+    const cpfDigits = cpf.replace(/\D/g, "");
+    if (cpfDigits.length !== 11) {
+      toast.error("CPF inválido. Digite 11 dígitos.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
