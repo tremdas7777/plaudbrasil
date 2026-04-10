@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useCart } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
 import { ChevronLeft, QrCode, Shield, Lock, Copy, Check, Loader2 } from "lucide-react";
@@ -6,6 +6,21 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaymentGatewayConfig } from "@/lib/paymentGateway";
 import { toast } from "sonner";
+
+const EMAIL_DOMAINS = [
+  "gmail.com",
+  "hotmail.com",
+  "outlook.com",
+  "yahoo.com.br",
+  "yahoo.com",
+  "icloud.com",
+  "live.com",
+  "uol.com.br",
+  "bol.com.br",
+  "terra.com.br",
+  "globo.com",
+  "protonmail.com",
+];
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -40,7 +55,73 @@ const Checkout = () => {
   const [bairro, setBairro] = useState("");
   const [estado, setEstado] = useState("");
 
+  const [emailSuggestions, setEmailSuggestions] = useState<string[]>([]);
+  const [showEmailSuggestions, setShowEmailSuggestions] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
+  const emailRef = useRef<HTMLDivElement>(null);
+
   const discount = totalOriginalPrice - totalPrice;
+
+  // Close email suggestions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (emailRef.current && !emailRef.current.contains(e.target as Node)) {
+        setShowEmailSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Email autocomplete
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    const atIndex = value.indexOf("@");
+    if (atIndex > 0) {
+      const typed = value.slice(atIndex + 1).toLowerCase();
+      const matches = EMAIL_DOMAINS.filter((d) => d.startsWith(typed) && d !== typed);
+      setEmailSuggestions(matches.map((d) => value.slice(0, atIndex + 1) + d));
+      setShowEmailSuggestions(matches.length > 0);
+    } else {
+      setShowEmailSuggestions(false);
+    }
+  };
+
+  const selectEmailSuggestion = (suggestion: string) => {
+    setEmail(suggestion);
+    setShowEmailSuggestions(false);
+  };
+
+  // CEP auto-fill via ViaCEP
+  const fetchCep = useCallback(async (cepValue: string) => {
+    const clean = cepValue.replace(/\D/g, "");
+    if (clean.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        if (data.logradouro) setRua(data.logradouro);
+        if (data.bairro) setBairro(data.bairro);
+        if (data.localidade) setCidade(data.localidade);
+        if (data.uf) setEstado(data.uf);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setCepLoading(false);
+    }
+  }, []);
+
+  const handleCepChange = (value: string) => {
+    // Format CEP as 00000-000
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+    const formatted = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+    setCep(formatted);
+    if (digits.length === 8) {
+      fetchCep(digits);
+    }
+  };
 
   const handleCopyPix = async () => {
     if (pixData?.pix_copy_paste) {
@@ -267,7 +348,31 @@ const Checkout = () => {
               <h2 className="text-lg font-semibold text-foreground">Dados pessoais</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input required value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                <input required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" type="email" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <div ref={emailRef} className="relative">
+                  <input
+                    required
+                    value={email}
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    onFocus={() => { if (emailSuggestions.length > 0) setShowEmailSuggestions(true); }}
+                    placeholder="E-mail"
+                    type="email"
+                    autoComplete="off"
+                    className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                  {showEmailSuggestions && (
+                    <ul className="absolute z-50 top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden">
+                      {emailSuggestions.slice(0, 5).map((s) => (
+                        <li
+                          key={s}
+                          onClick={() => selectEmailSuggestion(s)}
+                          className="px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 cursor-pointer transition-colors"
+                        >
+                          {s}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 <input required value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="CPF" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
                 <input required value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="Telefone" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
@@ -277,7 +382,10 @@ const Checkout = () => {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-foreground">Endereço de entrega</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input required value={cep} onChange={(e) => setCep(e.target.value)} placeholder="CEP" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <div className="relative">
+                  <input required value={cep} onChange={(e) => handleCepChange(e.target.value)} placeholder="CEP" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  {cepLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
+                </div>
                 <input required value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Cidade" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
                 <input required value={rua} onChange={(e) => setRua(e.target.value)} placeholder="Rua" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 sm:col-span-2" />
                 <input required value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="Número" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
