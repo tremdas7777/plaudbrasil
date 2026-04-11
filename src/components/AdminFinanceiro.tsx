@@ -15,34 +15,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { readOrdersFromStorage, type StoredOrder } from '@/lib/ordersStorage';
 
 type FilterPeriod = 'hoje' | 'ontem' | '3dias' | '7dias' | '15dias' | '30dias' | 'custom';
 
-interface Order {
-  id: string;
-  amount_cents: number;
-  shipping_cost_cents: number | null;
-  status: string;
-  created_at: string;
-  buyer_name: string | null;
-  buyer_document: string | null;
-  buyer_email: string | null;
-  buyer_phone: string | null;
-  gateway: string;
-  items_description: string | null;
-}
-
-const ORDERS_KEY = 'admin_orders';
-
-function getStoredOrders(): Order[] {
-  try {
-    const raw = localStorage.getItem(ORDERS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-
 export default function AdminFinanceiro() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<StoredOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<FilterPeriod>('hoje');
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
@@ -52,7 +30,7 @@ export default function AdminFinanceiro() {
   const fetchOrders = async () => {
     setLoading(true);
     await new Promise(r => setTimeout(r, 300));
-    setOrders(getStoredOrders());
+    setOrders(readOrdersFromStorage());
     setLoading(false);
   };
 
@@ -83,7 +61,7 @@ export default function AdminFinanceiro() {
     const approved = filteredOrders.filter(o => o.status === 'paid');
     const pending = filteredOrders.filter(o => o.status === 'pending' || o.status === 'waiting_payment');
     const cancelled = filteredOrders.filter(o => o.status === 'cancelled' || o.status === 'expired');
-    const getValorCobrado = (o: Order) => { const frete = o.shipping_cost_cents || 0; return frete > 0 ? frete : o.amount_cents; };
+    const getValorCobrado = (o: StoredOrder) => { const frete = o.shipping_cost_cents || 0; return frete > 0 ? frete : o.amount_cents; };
     const isUpsell = (o: Order) => (o.shipping_cost_cents || 0) === 0;
     const approvedMain = approved.filter(o => !isUpsell(o));
     const approvedUpsell = approved.filter(o => isUpsell(o));
@@ -106,7 +84,7 @@ export default function AdminFinanceiro() {
 
   const chartData = useMemo(() => {
     const dayMap: Record<string, { frete: number; upsell: number; vendas: number }> = {};
-    const getValorCobrado = (o: Order) => { const frete = o.shipping_cost_cents || 0; return frete > 0 ? frete : o.amount_cents; };
+    const getValorCobrado = (o: StoredOrder) => { const frete = o.shipping_cost_cents || 0; return frete > 0 ? frete : o.amount_cents; };
     filteredOrders.filter(o => o.status === 'paid').forEach(order => {
       const day = new Date(order.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
       if (!dayMap[day]) dayMap[day] = { frete: 0, upsell: 0, vendas: 0 };
