@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getPaymentGatewayConfig } from "@/lib/paymentGateway";
 import { saveOrderToStorage } from "@/lib/ordersStorage";
 import { toast } from "sonner";
+import QRCode from "qrcode";
 
 const EMAIL_DOMAINS = [
   "gmail.com",
@@ -42,6 +43,7 @@ const Checkout = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pixData, setPixData] = useState<PixResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
 
   // Form fields
   const [nome, setNome] = useState("");
@@ -73,6 +75,41 @@ const Checkout = () => {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const generateQrCode = async () => {
+      const qrSource = pixData?.pix_copy_paste || pixData?.pix_qr_code;
+
+      if (!qrSource) {
+        setQrCodeDataUrl(null);
+        return;
+      }
+
+      try {
+        const dataUrl = await QRCode.toDataURL(qrSource, {
+          width: 320,
+          margin: 1,
+        });
+
+        if (active) {
+          setQrCodeDataUrl(dataUrl);
+        }
+      } catch (error) {
+        console.error("QR generation error:", error);
+        if (active) {
+          setQrCodeDataUrl(null);
+        }
+      }
+    };
+
+    void generateQrCode();
+
+    return () => {
+      active = false;
+    };
+  }, [pixData]);
 
   // Email autocomplete
   const handleEmailChange = (value: string) => {
@@ -289,9 +326,9 @@ const Checkout = () => {
           <p className="text-muted-foreground mb-6">Escaneie o QR Code ou copie o código para pagar</p>
 
           <div className="bg-secondary rounded-2xl p-8 max-w-sm mx-auto space-y-4">
-            {pixData.pix_copy_paste ? (
+            {qrCodeDataUrl ? (
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixData.pix_copy_paste)}`}
+                src={qrCodeDataUrl}
                 alt="QR Code PIX"
                 className="w-48 h-48 mx-auto rounded-lg"
               />
