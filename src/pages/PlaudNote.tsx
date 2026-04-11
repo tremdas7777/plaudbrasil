@@ -128,26 +128,26 @@ const PlaudNote = () => {
       <section className="max-w-7xl mx-auto px-6 py-8 md:py-16">
         <div className="flex flex-col md:flex-row gap-10">
           {/* Gallery */}
-          <div className="flex-1 flex gap-4">
-            <div className="flex flex-col gap-2">
+          <div className="flex-1 flex flex-col gap-4">
+            <div className="bg-secondary rounded-2xl flex items-center justify-center p-8">
+              <img
+                src={currentImages[selectedImage]}
+                alt="Plaud Note"
+                className="max-h-[400px] object-contain"
+              />
+            </div>
+            <div className="flex gap-2 overflow-x-auto">
               {currentImages.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
-                  className={`w-16 h-16 rounded-lg border-2 overflow-hidden transition-colors ${
+                  className={`w-16 h-16 flex-shrink-0 rounded-lg border-2 overflow-hidden transition-colors ${
                     selectedImage === i ? "border-primary" : "border-border"
                   }`}
                 >
                   <img src={img} alt={`Plaud Note ${i + 1}`} className="w-full h-full object-contain" />
                 </button>
               ))}
-            </div>
-            <div className="flex-1 bg-secondary rounded-2xl flex items-center justify-center p-8">
-              <img
-                src={currentImages[selectedImage]}
-                alt="Plaud Note"
-                className="max-h-[400px] object-contain"
-              />
             </div>
           </div>
 
