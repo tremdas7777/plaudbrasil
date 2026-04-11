@@ -51,19 +51,26 @@ const toAmountCents = (order: UnknownOrder) => {
 export const normalizeStoredOrder = (order: UnknownOrder): StoredOrder => {
   const customer = order.customer ?? {};
   const items = Array.isArray(order.items) ? order.items : [];
+  const normalizedStatus = order.status === "waiting_payment" ? "pending" : order.status ?? "pending";
 
   return {
     id: order.id ?? order.transaction_hash ?? crypto.randomUUID(),
     amount_cents: toAmountCents(order),
     shipping_cost_cents: typeof order.shipping_cost_cents === "number" ? order.shipping_cost_cents : null,
-    status: order.status ?? "pending",
+    status: normalizedStatus,
     created_at: order.created_at ?? order.date ?? new Date().toISOString(),
     buyer_name: order.buyer_name ?? customer.nome ?? customer.name ?? null,
     buyer_document: order.buyer_document ?? customer.cpf ?? customer.document ?? null,
     buyer_email: order.buyer_email ?? customer.email ?? null,
     buyer_phone: order.buyer_phone ?? customer.telefone ?? customer.phone ?? null,
     gateway: order.gateway ?? "ironpay",
-    items_description: order.items_description ?? items.map((item: UnknownOrder) => `${item.quantity ?? 1}x ${item.name ?? item.title ?? "Item"}`).join(", ") || null,
+    items_description:
+      order.items_description ??
+      (items.length > 0
+        ? items
+            .map((item: UnknownOrder) => `${item.quantity ?? 1}x ${item.name ?? item.title ?? "Item"}`)
+            .join(", ")
+        : null),
     pix_code: order.pix_code ?? order.pix_copy_paste ?? null,
     buyer_address: order.buyer_address ?? customer.rua ?? customer.street ?? null,
     buyer_address_number: order.buyer_address_number ?? customer.numero ?? null,

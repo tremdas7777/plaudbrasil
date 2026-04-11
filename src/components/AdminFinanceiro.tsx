@@ -62,7 +62,7 @@ export default function AdminFinanceiro() {
     const pending = filteredOrders.filter(o => o.status === 'pending' || o.status === 'waiting_payment');
     const cancelled = filteredOrders.filter(o => o.status === 'cancelled' || o.status === 'expired');
     const getValorCobrado = (o: StoredOrder) => { const frete = o.shipping_cost_cents || 0; return frete > 0 ? frete : o.amount_cents; };
-    const isUpsell = (o: Order) => (o.shipping_cost_cents || 0) === 0;
+    const isUpsell = (o: StoredOrder) => (o.shipping_cost_cents || 0) === 0;
     const approvedMain = approved.filter(o => !isUpsell(o));
     const approvedUpsell = approved.filter(o => isUpsell(o));
     const faturamentoBrutoCents = approved.reduce((sum, o) => sum + getValorCobrado(o), 0);
