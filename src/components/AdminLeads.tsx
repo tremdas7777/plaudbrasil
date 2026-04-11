@@ -4,35 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Loader2, Users, Phone, Mail, FileText, Copy, CheckCircle, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Lead {
-  id: string;
-  buyer_name: string | null;
-  buyer_document: string | null;
-  buyer_phone: string | null;
-  buyer_email: string | null;
-  amount_cents: number;
-  status: string;
-  created_at: string;
-  pix_code: string | null;
-  buyer_address: string | null;
-  buyer_address_number: string | null;
-  buyer_complement: string | null;
-  buyer_neighborhood: string | null;
-  buyer_city: string | null;
-  buyer_state: string | null;
-  buyer_cep: string | null;
-  buyer_ip: string | null;
-  buyer_ip_city: string | null;
-  shipping_method: string | null;
-}
+import { readOrdersFromStorage, type StoredOrder } from '@/lib/ordersStorage';
 
 type FilterStatus = 'todos' | 'paid' | 'pending' | 'expired' | 'cancelled';
 
-const ORDERS_KEY = 'admin_orders';
-
 export default function AdminLeads() {
-  const [leads, setLeads] = useState<Lead[]>([]);
+  const [leads, setLeads] = useState<StoredOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterStatus>('todos');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -40,10 +17,8 @@ export default function AdminLeads() {
   const fetchLeads = async () => {
     setLoading(true);
     await new Promise(r => setTimeout(r, 300));
-    try {
-      const raw = localStorage.getItem(ORDERS_KEY);
-      setLeads(raw ? JSON.parse(raw) : []);
-    } catch { setLeads([]); }
+    try { setLeads(readOrdersFromStorage()); }
+    catch { setLeads([]); }
     setLoading(false);
   };
 

@@ -13,6 +13,7 @@ import { getPixelConfig, savePixelConfig, loadPixelConfigFromDb, type PixelConfi
 import { getWebhookConfig, saveWebhookConfig, fireWebhookEvent, syncWebhooksToDb, loadWebhooksFromDb, type WebhookConfig, type WebhookEntry } from '@/lib/webhookManager';
 import { getUtmifyConfig, saveUtmifyConfig, testUtmifyToken, type UtmifyConfig } from '@/lib/utmifyManager';
 import { fetchPaymentGatewayConfig, savePaymentGatewayConfig, type PaymentGatewayConfig } from '@/lib/paymentGateway';
+import { clearStoredOrders, readOrdersFromStorage, type StoredOrder } from '@/lib/ordersStorage';
 import AdminFinanceiro from '@/components/AdminFinanceiro';
 import AdminLeads from '@/components/AdminLeads';
 import AdminAbandonedCheckouts from '@/components/AdminAbandonedCheckouts';
@@ -55,7 +56,7 @@ export default function AdminPanel() {
   });
   const [gatewayMessage, setGatewayMessage] = useState('');
   const [gatewayTesting, setGatewayTesting] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<StoredOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
   const [cloakerEnabled, setCloakerEnabled] = useState(true);
@@ -70,10 +71,8 @@ export default function AdminPanel() {
   const fetchOrders = async () => {
     setOrdersLoading(true);
     await new Promise(r => setTimeout(r, 300));
-    try {
-      const raw = localStorage.getItem('admin_orders');
-      setOrders(raw ? JSON.parse(raw) : []);
-    } catch { setOrders([]); }
+    try { setOrders(readOrdersFromStorage()); }
+    catch { setOrders([]); }
     setOrdersLoading(false);
   };
 
@@ -632,7 +631,7 @@ export default function AdminPanel() {
                 <p className="text-muted-foreground text-xs">Visualize os pedidos gerados via PIX</p>
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => { localStorage.removeItem('admin_orders'); fetchOrders(); }} variant="outline" size="sm" className="text-xs font-bold text-destructive hover:bg-destructive/10">
+                <Button onClick={() => { clearStoredOrders(); fetchOrders(); }} variant="outline" size="sm" className="text-xs font-bold text-destructive hover:bg-destructive/10">
                   <Trash2 size={14} className="mr-1" /> Limpar
                 </Button>
                 <Button onClick={fetchOrders} variant="outline" size="sm" className="text-xs font-bold" disabled={ordersLoading}>
@@ -650,7 +649,7 @@ export default function AdminPanel() {
             {ordersLoading && <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>}
             {orders.length > 0 && (
               <div className="space-y-3">
-                {orders.map((order: any) => (
+                {orders.map((order) => (
                   <Card key={order.id} className="p-4 border border-border">
                     <div className="flex items-start justify-between mb-2">
                       <div>

@@ -5,6 +5,7 @@ import { ChevronLeft, QrCode, Shield, Lock, Copy, Check, Loader2 } from "lucide-
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getPaymentGatewayConfig } from "@/lib/paymentGateway";
+import { saveOrderToStorage } from "@/lib/ordersStorage";
 import { toast } from "sonner";
 
 const EMAIL_DOMAINS = [
@@ -34,16 +35,6 @@ interface PixResult {
   amount: number;
   expires_at: string | null;
 }
-
-const getStoredOrders = () => {
-  try {
-    const raw = localStorage.getItem("generated_orders");
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
 
 const Checkout = () => {
   const { items, totalPrice, totalOriginalPrice, clearCart } = useCart();
@@ -224,19 +215,28 @@ const Checkout = () => {
         setStep("pix");
 
         try {
-          const order = {
+          saveOrderToStorage({
             id: resolvedPixData.transaction_hash,
-            date: new Date().toISOString(),
-            customer: { nome, email, cpf, telefone },
+            created_at: new Date().toISOString(),
+            buyer_name: nome,
+            buyer_email: email,
+            buyer_document: cpf,
+            buyer_phone: telefone,
+            buyer_address: rua,
+            buyer_address_number: numero,
+            buyer_complement: complemento,
+            buyer_neighborhood: bairro,
+            buyer_city: cidade,
+            buyer_state: estado,
+            buyer_cep: cep,
             items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price })),
-            total: totalPrice,
-            status: "pending",
+            items_description: items.map((i) => `${i.quantity}x ${i.name}`).join(", "),
+            amount_cents: amountInCentavos,
+            pix_code: resolvedPixData.pix_copy_paste,
+            status: resolvedPixData.status || "pending",
             gateway: "ironpay",
-          };
-
-          const existing = getStoredOrders();
-          existing.push(order);
-          localStorage.setItem("generated_orders", JSON.stringify(existing));
+            shipping_method: "pix",
+          });
         } catch (storageError) {
           console.warn("Failed to persist generated order:", storageError);
         }
