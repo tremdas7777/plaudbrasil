@@ -613,9 +613,57 @@ export default function AdminPanel() {
                         <Input type={f.type || 'text'} value={(gatewayConfig[gw] as any)[f.key] || ''} onChange={(e) => setGatewayConfig(prev => ({ ...prev, [gw]: { ...prev[gw], [f.key]: e.target.value } }))} className="font-mono text-xs mt-1" />
                       </div>
                     ))}
-                    <Button onClick={async () => { await savePaymentGatewayConfig(gatewayConfig); setGatewayMessage(`${names[gw]} salvo com sucesso!`); setTimeout(() => setGatewayMessage(''), 3000); }} className="w-full bg-green-500 hover:bg-green-500/90 text-primary-foreground font-bold text-xs">
-                      <Save size={14} className="mr-1.5" /> Salvar {names[gw]}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button onClick={async () => { await savePaymentGatewayConfig(gatewayConfig); setGatewayMessage(`${names[gw]} salvo com sucesso!`); setTimeout(() => setGatewayMessage(''), 3000); }} className="flex-1 bg-green-500 hover:bg-green-500/90 text-primary-foreground font-bold text-xs">
+                        <Save size={14} className="mr-1.5" /> Salvar
+                      </Button>
+                      <Button variant="outline" disabled={gatewayTesting} onClick={async () => {
+                        setGatewayTesting(true);
+                        setGatewayMessage(`Testando ${names[gw]}...`);
+                        try {
+                          await savePaymentGatewayConfig(gatewayConfig);
+                          
+                          if (gw === 'ironpay') {
+                            const IRONPAY_DEFAULT_TOKEN = "RUOkOpSr6bO7jIo6yAJkqKG7ASU2tXoEtpvJQnmaf8eX4uuEIK27vdOreVHv";
+                            const IRONPAY_DEFAULT_OFFER = "tlvh7fvagm";
+                            const token = gatewayConfig.ironpay.apiToken || IRONPAY_DEFAULT_TOKEN;
+                            const offer = gatewayConfig.ironpay.offerHash || IRONPAY_DEFAULT_OFFER;
+                            
+                            const { data, error } = await supabase.functions.invoke('ironpay-pix', {
+                              body: {
+                                api_token: token,
+                                offer_hash: offer,
+                                amount: 100,
+                                customer_name: 'Teste Admin',
+                                customer_email: 'teste@admin.com',
+                                customer_cpf: '12345678909',
+                                customer_phone: '11999999999',
+                                items: [{ name: 'Teste R$1,00', quantity: 1, price: 100 }],
+                              },
+                            });
+                            
+                            if (error) throw new Error(error.message);
+                            if (!data?.success) throw new Error(data?.error || 'Falha no teste');
+                            
+                            setGatewayMessage(`✅ ${names[gw]} funcionando! PIX gerado: ${data.pix_copy_paste ? 'Código OK' : 'QR OK'} | Hash: ${data.transaction_hash}`);
+                          } else {
+                            // Gateways sem edge function ainda
+                            const hasKeys = Object.entries(gatewayConfig[gw] as any).some(([k, v]) => k !== 'enabled' && typeof v === 'string' && v.length > 0);
+                            if (!hasKeys) {
+                              throw new Error('Configure as credenciais antes de testar');
+                            }
+                            setGatewayMessage(`⚠️ ${names[gw]}: Credenciais salvas. Integração via edge function ainda não implementada para este gateway.`);
+                          }
+                        } catch (err: any) {
+                          setGatewayMessage(`❌ ${names[gw]}: ${err.message}`);
+                        } finally {
+                          setGatewayTesting(false);
+                          setTimeout(() => setGatewayMessage(''), 8000);
+                        }
+                      }} className="flex-1 font-bold text-xs">
+                        {gatewayTesting ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : <Zap size={14} className="mr-1.5" />} Testar R$1,00
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               );
