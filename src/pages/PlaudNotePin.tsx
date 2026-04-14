@@ -36,6 +36,7 @@ const colorOptions = [
 ];
 
 const PlaudNotePin = () => {
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   const [selectedColor, setSelectedColor] = useState<keyof typeof colorVariants>("Cinza");
   const [selectedImage, setSelectedImage] = useState(0);
   const { addItem } = useCart();
