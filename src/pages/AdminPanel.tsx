@@ -90,12 +90,16 @@ export default function AdminPanel() {
     loadWebhooksFromDb().then(config => { setWebhookConfig(config); saveWebhookConfig(config); });
     setUtmifyConfig(getUtmifyConfig());
     fetchPaymentGatewayConfig().then(config => setGatewayConfig(config));
-    supabase.from('cloaker_config').select('enabled, google_enabled, tiktok_enabled, facebook_enabled').limit(1).single().then(({ data }) => {
+    supabase.from('cloaker_config').select('*').limit(1).single().then(async ({ data, error }) => {
       if (data) {
         setCloakerEnabled(data.enabled);
         setCloakerGoogleEnabled((data as any).google_enabled ?? true);
         setCloakerTiktokEnabled((data as any).tiktok_enabled ?? true);
         setCloakerFacebookEnabled((data as any).facebook_enabled ?? true);
+      } else if (error?.code === 'PGRST116') {
+        // No config row exists yet — create one with defaults off
+        await supabase.from('cloaker_config').insert({ enabled: false, google_enabled: true, tiktok_enabled: true, facebook_enabled: true } as any);
+        setCloakerEnabled(false);
       }
     });
     fetchOrders();
