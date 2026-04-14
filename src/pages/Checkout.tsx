@@ -66,6 +66,8 @@ const Checkout = () => {
 
   const discount = totalOriginalPrice - totalPrice;
 
+  useEffect(() => { trackEvent('checkout'); }, []);
+
   // Close email suggestions on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
