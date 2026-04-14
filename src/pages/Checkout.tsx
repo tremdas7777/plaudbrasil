@@ -8,6 +8,7 @@ import { getPaymentGatewayConfig } from "@/lib/paymentGateway";
 import { saveOrderToStorage } from "@/lib/ordersStorage";
 import { toast } from "sonner";
 import QRCode from "qrcode";
+import { trackEvent } from "@/lib/funnelTracking";
 
 const EMAIL_DOMAINS = [
   "gmail.com",
@@ -64,6 +65,8 @@ const Checkout = () => {
   const emailRef = useRef<HTMLDivElement>(null);
 
   const discount = totalOriginalPrice - totalPrice;
+
+  useEffect(() => { trackEvent('checkout'); }, []);
 
   // Close email suggestions on outside click
   useEffect(() => {

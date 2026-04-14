@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useCart } from "@/contexts/CartContext";
+import { trackEvent } from "@/lib/funnelTracking";
 
 const colorVariants = {
   Cinza: [
@@ -36,7 +37,7 @@ const colorOptions = [
 ];
 
 const PlaudNotePin = () => {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  useEffect(() => { window.scrollTo(0, 0); trackEvent('visitor'); }, []);
   const [selectedColor, setSelectedColor] = useState<keyof typeof colorVariants>("Cinza");
   const [selectedImage, setSelectedImage] = useState(0);
   const { addItem } = useCart();
