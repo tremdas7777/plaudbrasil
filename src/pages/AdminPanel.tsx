@@ -90,12 +90,16 @@ export default function AdminPanel() {
     loadWebhooksFromDb().then(config => { setWebhookConfig(config); saveWebhookConfig(config); });
     setUtmifyConfig(getUtmifyConfig());
     fetchPaymentGatewayConfig().then(config => setGatewayConfig(config));
-    supabase.from('cloaker_config').select('enabled, google_enabled, tiktok_enabled, facebook_enabled').limit(1).single().then(({ data }) => {
+    supabase.from('cloaker_config').select('*').limit(1).single().then(async ({ data, error }) => {
       if (data) {
         setCloakerEnabled(data.enabled);
         setCloakerGoogleEnabled((data as any).google_enabled ?? true);
         setCloakerTiktokEnabled((data as any).tiktok_enabled ?? true);
         setCloakerFacebookEnabled((data as any).facebook_enabled ?? true);
+      } else if (error?.code === 'PGRST116') {
+        // No config row exists yet — create one with defaults off
+        await supabase.from('cloaker_config').insert({ enabled: false, google_enabled: true, tiktok_enabled: true, facebook_enabled: true } as any);
+        setCloakerEnabled(false);
       }
     });
     fetchOrders();
@@ -766,12 +770,18 @@ export default function AdminPanel() {
                 <Switch checked={cloakerEnabled} disabled={cloakerLoading} onCheckedChange={async (checked) => {
                   setCloakerLoading(true);
                   setCloakerMessage('');
-                  const { error } = await supabase
-                    .from('cloaker_config')
-                    .update({ enabled: checked, updated_at: new Date().toISOString() } as any)
-                    .eq('id', (await supabase.from('cloaker_config').select('id').limit(1).single()).data?.id || '');
-                  if (error) { setCloakerMessage('Erro ao salvar configuração'); }
-                  else { setCloakerEnabled(checked); setCloakerMessage(checked ? 'Cloaker ativado!' : 'Cloaker desativado!'); }
+                  const { data: row } = await supabase.from('cloaker_config').select('id').limit(1).single();
+                  if (!row) {
+                    await supabase.from('cloaker_config').insert({ enabled: checked } as any);
+                    setCloakerEnabled(checked);
+                  } else {
+                    const { error } = await supabase
+                      .from('cloaker_config')
+                      .update({ enabled: checked, updated_at: new Date().toISOString() } as any)
+                      .eq('id', row.id);
+                    if (error) { setCloakerMessage('Erro ao salvar configuração'); }
+                    else { setCloakerEnabled(checked); setCloakerMessage(checked ? 'Cloaker ativado!' : 'Cloaker desativado!'); }
+                  }
                   setCloakerLoading(false);
                   setTimeout(() => setCloakerMessage(''), 3000);
                 }} />
