@@ -631,6 +631,37 @@ export default function AdminPanel() {
                 <p className="text-muted-foreground text-xs">Visualize os pedidos gerados via PIX</p>
               </div>
               <div className="flex gap-2">
+                <Button onClick={() => {
+                  const testOrder = {
+                    id: crypto.randomUUID(),
+                    amount_cents: 125910,
+                    shipping_cost_cents: 0,
+                    status: ['paid', 'pending'][Math.floor(Math.random() * 2)],
+                    created_at: new Date().toISOString(),
+                    buyer_name: 'Cliente Teste',
+                    buyer_document: '123.456.789-00',
+                    buyer_email: 'teste@email.com',
+                    buyer_phone: '(11) 99999-9999',
+                    gateway: 'ironpay',
+                    items_description: '1x Plaud Note',
+                    pix_code: null,
+                    buyer_address: 'Rua Teste',
+                    buyer_address_number: '123',
+                    buyer_complement: null,
+                    buyer_neighborhood: 'Centro',
+                    buyer_city: 'São Paulo',
+                    buyer_state: 'SP',
+                    buyer_cep: '01000-000',
+                    buyer_ip: null,
+                    buyer_ip_city: null,
+                    shipping_method: 'pix',
+                  };
+                  saveOrderToStorage(testOrder);
+                  fetchOrders();
+                  setMsg('Pedido de teste R$ 1.259,10 criado!');
+                }} variant="outline" size="sm" className="text-xs font-bold text-blue-600 hover:bg-blue-500/10">
+                  + Teste R$ 1.259,10
+                </Button>
                 <Button onClick={() => { clearStoredOrders(); fetchOrders(); }} variant="outline" size="sm" className="text-xs font-bold text-destructive hover:bg-destructive/10">
                   <Trash2 size={14} className="mr-1" /> Limpar
                 </Button>
