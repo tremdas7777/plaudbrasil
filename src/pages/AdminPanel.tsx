@@ -13,7 +13,7 @@ import { getPixelConfig, savePixelConfig, loadPixelConfigFromDb, type PixelConfi
 import { getWebhookConfig, saveWebhookConfig, fireWebhookEvent, syncWebhooksToDb, loadWebhooksFromDb, type WebhookConfig, type WebhookEntry } from '@/lib/webhookManager';
 import { getUtmifyConfig, saveUtmifyConfig, testUtmifyToken, type UtmifyConfig } from '@/lib/utmifyManager';
 import { fetchPaymentGatewayConfig, savePaymentGatewayConfig, type PaymentGatewayConfig } from '@/lib/paymentGateway';
-import { clearStoredOrders, readOrdersFromStorage, type StoredOrder } from '@/lib/ordersStorage';
+import { clearStoredOrders, readOrdersFromStorage, saveOrderToStorage, type StoredOrder } from '@/lib/ordersStorage';
 import AdminFinanceiro from '@/components/AdminFinanceiro';
 import AdminLeads from '@/components/AdminLeads';
 import AdminAbandonedCheckouts from '@/components/AdminAbandonedCheckouts';
@@ -658,7 +658,7 @@ export default function AdminPanel() {
                   };
                   saveOrderToStorage(testOrder);
                   fetchOrders();
-                  setMsg('Pedido de teste R$ 1.259,10 criado!');
+                  setMessage('Pedido de teste R$ 1.259,10 criado!');
                 }} variant="outline" size="sm" className="text-xs font-bold text-blue-600 hover:bg-blue-500/10">
                   + Teste R$ 1.259,10
                 </Button>
