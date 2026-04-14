@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
+import { trackEvent } from "@/lib/funnelTracking";
 
 const colorVariants = {
   Cinza: [
@@ -110,7 +111,7 @@ const useCases = [
 ];
 
 const PlaudNote = () => {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  useEffect(() => { window.scrollTo(0, 0); trackEvent('visitor'); }, []);
   const [selectedColor, setSelectedColor] = useState<keyof typeof colorVariants>("Cinza");
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeUseCase, setActiveUseCase] = useState(0);
