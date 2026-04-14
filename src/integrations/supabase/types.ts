@@ -106,7 +106,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_funnel_stats: {
+        Args: { period_minutes?: number }
+        Returns: {
+          active_now: number
+          checkout: number
+          purchase: number
+          quiz_completed: number
+          quiz_started: number
+          scratch_card: number
+          thank_you: number
+          thank_you_upsell: number
+          upsell: number
+          visitors: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
