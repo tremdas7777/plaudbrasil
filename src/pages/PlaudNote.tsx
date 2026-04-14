@@ -111,7 +111,7 @@ const useCases = [
 ];
 
 const PlaudNote = () => {
-  useEffect(() => { window.scrollTo(0, 0); trackEvent('visitor'); }, []);
+  useEffect(() => { window.scrollTo(0, 0); trackEvent('visitor'); trackEvent('product_view'); }, []);
   const [selectedColor, setSelectedColor] = useState<keyof typeof colorVariants>("Cinza");
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeUseCase, setActiveUseCase] = useState(0);
@@ -191,14 +191,14 @@ const PlaudNote = () => {
             </div>
 
             <button
-              onClick={() => addItem({
+              onClick={() => { trackEvent('add_to_cart'); addItem({
                 id: `plaud-note-${selectedColor}`,
                 name: "Plaud Note",
                 color: selectedColor,
                 price: 1259.10,
                 originalPrice: 1399.00,
                 image: colorVariants[selectedColor][0],
-              })}
+              }); }}
               className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
             >
               Adicionar ao carrinho

@@ -110,7 +110,9 @@ export type Database = {
         Args: { period_minutes?: number }
         Returns: {
           active_now: number
+          add_to_cart: number
           checkout: number
+          product_view: number
           purchase: number
           quiz_completed: number
           quiz_started: number

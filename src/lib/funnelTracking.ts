@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type FunnelEvent = 'visitor' | 'quiz_started' | 'quiz_completed' | 'scratch_card' | 'checkout' | 'purchase' | 'thank_you' | 'upsell' | 'thank_you_upsell';
+export type FunnelEvent = 'visitor' | 'product_view' | 'add_to_cart' | 'quiz_started' | 'quiz_completed' | 'scratch_card' | 'checkout' | 'purchase' | 'thank_you' | 'upsell' | 'thank_you_upsell';
 
 const SESSION_KEY = 'funnel_session_id';
 const EVENTS_KEY = 'funnel_events';
@@ -43,6 +43,8 @@ function getLocalFunnelStats(periodMinutes: number) {
 
   return {
     visitors: count('visitor'),
+    productView: count('product_view'),
+    addToCart: count('add_to_cart'),
     quizStarted: count('quiz_started'),
     quizCompleted: count('quiz_completed'),
     scratchCard: count('scratch_card'),
@@ -93,6 +95,8 @@ export async function getFunnelStats(periodMinutes: number) {
       if (row) {
         return {
           visitors: Number(row.visitors ?? 0),
+          productView: Number(row.product_view ?? 0),
+          addToCart: Number(row.add_to_cart ?? 0),
           quizStarted: Number(row.quiz_started ?? 0),
           quizCompleted: Number(row.quiz_completed ?? 0),
           scratchCard: Number(row.scratch_card ?? 0),

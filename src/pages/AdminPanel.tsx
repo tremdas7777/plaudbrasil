@@ -31,7 +31,7 @@ export default function AdminPanel() {
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('analytics');
   const [period, setPeriod] = useState(30);
-  const [stats, setStats] = useState({ visitors: 0, quizStarted: 0, quizCompleted: 0, scratchCard: 0, checkout: 0, purchase: 0, thankYou: 0, upsell: 0, thankYouUpsell: 0, activeNow: 0 });
+  const [stats, setStats] = useState({ visitors: 0, productView: 0, addToCart: 0, quizStarted: 0, quizCompleted: 0, scratchCard: 0, checkout: 0, purchase: 0, thankYou: 0, upsell: 0, thankYouUpsell: 0, activeNow: 0 });
 
   const [pixelConfig, setPixelConfig] = useState<PixelConfig>({ facebookPixels: [], tiktokPixels: [], googleAdsPixels: [], utmifyHtml: '' });
   const [pixelMessage, setPixelMessage] = useState('');
@@ -230,15 +230,12 @@ export default function AdminPanel() {
   const globalConversion = pct(stats.purchase, stats.visitors);
 
   const funnelSteps = [
-    { icon: <Eye size={20} className="text-primary" />, title: 'Visitantes', description: 'Chegaram à landing page', count: stats.visitors, conversion: null as number | null, dropoff: `${pct(stats.quizStarted, stats.visitors)}% dos visitantes`, progressValue: 100 },
-    { icon: <TrendingUp size={20} className="text-green-500" />, title: 'Quiz Iniciado', description: 'Clicaram em Começar', count: stats.quizStarted, conversion: pct(stats.quizStarted, stats.visitors), dropoff: `${pct(stats.quizCompleted, stats.quizStarted)}% dos iniciados`, progressValue: stats.visitors > 0 ? (stats.quizStarted / stats.visitors) * 100 : 0 },
-    { icon: <CheckCircle size={20} className="text-yellow-500" />, title: 'Quiz Completado', description: 'Terminaram as perguntas', count: stats.quizCompleted, conversion: pct(stats.quizCompleted, stats.visitors), dropoff: `${pct(stats.scratchCard, stats.quizCompleted)}% dos completados`, progressValue: stats.visitors > 0 ? (stats.quizCompleted / stats.visitors) * 100 : 0 },
-    { icon: <Gift size={20} className="text-purple-500" />, title: 'Raspadinha', description: 'Abriram a raspadinha', count: stats.scratchCard, conversion: pct(stats.scratchCard, stats.visitors), dropoff: `${pct(stats.checkout, stats.scratchCard)}% da raspadinha`, progressValue: stats.visitors > 0 ? (stats.scratchCard / stats.visitors) * 100 : 0 },
-    { icon: <ShoppingCart size={20} className="text-orange-500" />, title: 'Checkout', description: 'Estão no checkout', count: stats.checkout, conversion: pct(stats.checkout, stats.visitors), dropoff: `${pct(stats.purchase, stats.checkout)}% do checkout`, progressValue: stats.visitors > 0 ? (stats.checkout / stats.visitors) * 100 : 0 },
-    { icon: <DollarSign size={20} className="text-destructive" />, title: 'Comprou (PIX)', description: 'Geraram o PIX', count: stats.purchase, conversion: pct(stats.purchase, stats.visitors), dropoff: `${pct(stats.thankYou, stats.purchase)}% do PIX`, progressValue: stats.visitors > 0 ? (stats.purchase / stats.visitors) * 100 : 0 },
-    { icon: <CheckCircle size={20} className="text-green-500" />, title: 'Obrigado', description: 'Pagamento confirmado', count: stats.thankYou, conversion: pct(stats.thankYou, stats.visitors), dropoff: `${pct(stats.upsell, stats.thankYou)}% viram upsell`, progressValue: stats.visitors > 0 ? (stats.thankYou / stats.visitors) * 100 : 0 },
-    { icon: <Gift size={20} className="text-yellow-500" />, title: 'Upsell', description: 'Aceitaram o upsell', count: stats.upsell, conversion: pct(stats.upsell, stats.visitors), dropoff: `${pct(stats.thankYouUpsell, stats.upsell)}% pagaram upsell`, progressValue: stats.visitors > 0 ? (stats.upsell / stats.visitors) * 100 : 0 },
-    { icon: <Star size={20} className="text-green-500" />, title: 'Obrigado Upsell', description: 'Upsell pago com sucesso', count: stats.thankYouUpsell, conversion: pct(stats.thankYouUpsell, stats.visitors), dropoff: null as string | null, progressValue: stats.visitors > 0 ? (stats.thankYouUpsell / stats.visitors) * 100 : 0 },
+    { icon: <Eye size={20} className="text-primary" />, title: 'Visitantes', description: 'Chegaram à loja', count: stats.visitors, conversion: null as number | null, dropoff: `${pct(stats.productView, stats.visitors)}% viram produto`, progressValue: 100 },
+    { icon: <TrendingUp size={20} className="text-green-500" />, title: 'Visualizou Produto', description: 'Abriram página do produto', count: stats.productView, conversion: pct(stats.productView, stats.visitors), dropoff: `${pct(stats.addToCart, stats.productView)}% adicionaram ao carrinho`, progressValue: stats.visitors > 0 ? (stats.productView / stats.visitors) * 100 : 0 },
+    { icon: <ShoppingCart size={20} className="text-yellow-500" />, title: 'Adicionou ao Carrinho', description: 'Clicaram em adicionar', count: stats.addToCart, conversion: pct(stats.addToCart, stats.visitors), dropoff: `${pct(stats.checkout, stats.addToCart)}% foram ao checkout`, progressValue: stats.visitors > 0 ? (stats.addToCart / stats.visitors) * 100 : 0 },
+    { icon: <CreditCard size={20} className="text-orange-500" />, title: 'Checkout', description: 'Chegaram ao checkout', count: stats.checkout, conversion: pct(stats.checkout, stats.visitors), dropoff: `${pct(stats.purchase, stats.checkout)}% geraram PIX`, progressValue: stats.visitors > 0 ? (stats.checkout / stats.visitors) * 100 : 0 },
+    { icon: <DollarSign size={20} className="text-destructive" />, title: 'Gerou PIX', description: 'Geraram código PIX', count: stats.purchase, conversion: pct(stats.purchase, stats.visitors), dropoff: `${pct(stats.thankYou, stats.purchase)}% pagaram`, progressValue: stats.visitors > 0 ? (stats.purchase / stats.visitors) * 100 : 0 },
+    { icon: <CheckCircle size={20} className="text-green-500" />, title: 'Pagamento Confirmado', description: 'Pagaram com sucesso', count: stats.thankYou, conversion: pct(stats.thankYou, stats.visitors), dropoff: null as string | null, progressValue: stats.visitors > 0 ? (stats.thankYou / stats.visitors) * 100 : 0 },
   ];
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
@@ -340,18 +337,18 @@ export default function AdminPanel() {
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={[
                   { etapa: 'Visitantes', valor: stats.visitors },
-                  { etapa: 'Quiz Início', valor: stats.quizStarted },
-                  { etapa: 'Quiz Fim', valor: stats.quizCompleted },
-                  { etapa: 'Raspadinha', valor: stats.scratchCard },
+                  { etapa: 'Produto', valor: stats.productView },
+                  { etapa: 'Carrinho', valor: stats.addToCart },
                   { etapa: 'Checkout', valor: stats.checkout },
-                  { etapa: 'Comprou', valor: stats.purchase },
+                  { etapa: 'PIX Gerado', valor: stats.purchase },
+                  { etapa: 'Pago', valor: stats.thankYou },
                 ]} layout="vertical" margin={{ left: 10, right: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                   <YAxis dataKey="etapa" type="category" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 700 }} width={80} />
                   <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid hsl(var(--border))' }} />
                   <Bar dataKey="valor" radius={[0, 6, 6, 0]}>
-                    {['hsl(var(--primary))', 'hsl(142, 71%, 45%)', 'hsl(45, 93%, 47%)', 'hsl(270, 60%, 55%)', 'hsl(30, 100%, 50%)', 'hsl(0, 84%, 60%)'].map((fill, i) => (
+                    {['hsl(var(--primary))', 'hsl(142, 71%, 45%)', 'hsl(45, 93%, 47%)', 'hsl(30, 100%, 50%)', 'hsl(0, 84%, 60%)', 'hsl(142, 71%, 35%)'].map((fill, i) => (
                       <Cell key={i} fill={fill} />
                     ))}
                   </Bar>

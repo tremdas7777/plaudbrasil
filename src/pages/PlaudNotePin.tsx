@@ -37,7 +37,7 @@ const colorOptions = [
 ];
 
 const PlaudNotePin = () => {
-  useEffect(() => { window.scrollTo(0, 0); trackEvent('visitor'); }, []);
+  useEffect(() => { window.scrollTo(0, 0); trackEvent('visitor'); trackEvent('product_view'); }, []);
   const [selectedColor, setSelectedColor] = useState<keyof typeof colorVariants>("Cinza");
   const [selectedImage, setSelectedImage] = useState(0);
   const { addItem } = useCart();
@@ -114,14 +114,14 @@ const PlaudNotePin = () => {
             </div>
 
             <button
-              onClick={() => addItem({
+              onClick={() => { trackEvent('add_to_cart'); addItem({
                 id: `plaud-notepin-${selectedColor}`,
                 name: "Plaud NotePin",
                 color: selectedColor,
                 price: 1439.10,
                 originalPrice: 1599.00,
                 image: colorVariants[selectedColor][0],
-              })}
+              }); }}
               className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
             >
               Adicionar ao carrinho
