@@ -770,12 +770,18 @@ export default function AdminPanel() {
                 <Switch checked={cloakerEnabled} disabled={cloakerLoading} onCheckedChange={async (checked) => {
                   setCloakerLoading(true);
                   setCloakerMessage('');
-                  const { error } = await supabase
-                    .from('cloaker_config')
-                    .update({ enabled: checked, updated_at: new Date().toISOString() } as any)
-                    .eq('id', (await supabase.from('cloaker_config').select('id').limit(1).single()).data?.id || '');
-                  if (error) { setCloakerMessage('Erro ao salvar configuração'); }
-                  else { setCloakerEnabled(checked); setCloakerMessage(checked ? 'Cloaker ativado!' : 'Cloaker desativado!'); }
+                  const { data: row } = await supabase.from('cloaker_config').select('id').limit(1).single();
+                  if (!row) {
+                    await supabase.from('cloaker_config').insert({ enabled: checked } as any);
+                    setCloakerEnabled(checked);
+                  } else {
+                    const { error } = await supabase
+                      .from('cloaker_config')
+                      .update({ enabled: checked, updated_at: new Date().toISOString() } as any)
+                      .eq('id', row.id);
+                    if (error) { setCloakerMessage('Erro ao salvar configuração'); }
+                    else { setCloakerEnabled(checked); setCloakerMessage(checked ? 'Cloaker ativado!' : 'Cloaker desativado!'); }
+                  }
                   setCloakerLoading(false);
                   setTimeout(() => setCloakerMessage(''), 3000);
                 }} />
