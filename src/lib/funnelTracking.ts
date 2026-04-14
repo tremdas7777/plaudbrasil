@@ -1,4 +1,4 @@
-// Funnel event tracking using localStorage
+import { supabase } from "@/integrations/supabase/client";
 
 export type FunnelEvent = 'visitor' | 'quiz_started' | 'quiz_completed' | 'scratch_card' | 'checkout' | 'purchase' | 'thank_you' | 'upsell' | 'thank_you_upsell';
 
@@ -29,21 +29,7 @@ function getStoredEvents(): StoredEvent[] {
   }
 }
 
-export async function trackEvent(event: FunnelEvent) {
-  try {
-    const events = getStoredEvents();
-    events.push({
-      event,
-      session_id: getSessionId(),
-      created_at: new Date().toISOString(),
-    });
-    localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
-  } catch (err) {
-    console.warn('Failed to track funnel event:', err);
-  }
-}
-
-export async function getFunnelStats(periodMinutes: number) {
+function getLocalFunnelStats(periodMinutes: number) {
   const cutoff = Date.now() - periodMinutes * 60 * 1000;
   const activeNowCutoff = Date.now() - 2 * 60 * 1000;
   const events = getStoredEvents();
@@ -67,6 +53,63 @@ export async function getFunnelStats(periodMinutes: number) {
     thankYouUpsell: count('thank_you_upsell'),
     activeNow: activeSessions.size,
   };
+}
+
+export async function trackEvent(event: FunnelEvent) {
+  const payload = {
+    event,
+    session_id: getSessionId(),
+    created_at: new Date().toISOString(),
+  };
+
+  try {
+    const events = getStoredEvents();
+    events.push(payload);
+    localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+  } catch (err) {
+    console.warn('Failed to track funnel event locally:', err);
+  }
+
+  try {
+    await (supabase as any).from('funnel_events').insert({
+      event: payload.event,
+      session_id: payload.session_id,
+      source: 'storefront',
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+    });
+  } catch (err) {
+    console.warn('Failed to track funnel event in backend:', err);
+  }
+}
+
+export async function getFunnelStats(periodMinutes: number) {
+  try {
+    const { data, error } = await (supabase as any).rpc('get_funnel_stats', {
+      period_minutes: periodMinutes,
+    });
+
+    if (!error) {
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row) {
+        return {
+          visitors: Number(row.visitors ?? 0),
+          quizStarted: Number(row.quiz_started ?? 0),
+          quizCompleted: Number(row.quiz_completed ?? 0),
+          scratchCard: Number(row.scratch_card ?? 0),
+          checkout: Number(row.checkout ?? 0),
+          purchase: Number(row.purchase ?? 0),
+          thankYou: Number(row.thank_you ?? 0),
+          upsell: Number(row.upsell ?? 0),
+          thankYouUpsell: Number(row.thank_you_upsell ?? 0),
+          activeNow: Number(row.active_now ?? 0),
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to read funnel stats from backend:', err);
+  }
+
+  return getLocalFunnelStats(periodMinutes);
 }
 
 export async function clearFunnelEvents() {

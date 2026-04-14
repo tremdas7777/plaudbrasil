@@ -74,12 +74,53 @@ export type Database = {
         }
         Relationships: []
       }
+      funnel_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          session_id: string
+          source: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          session_id: string
+          source?: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          session_id?: string
+          source?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_funnel_stats: {
+        Args: { period_minutes?: number }
+        Returns: {
+          active_now: number
+          checkout: number
+          purchase: number
+          quiz_completed: number
+          quiz_started: number
+          scratch_card: number
+          thank_you: number
+          thank_you_upsell: number
+          upsell: number
+          visitors: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
