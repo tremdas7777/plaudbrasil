@@ -633,12 +633,12 @@ export default function AdminPanel() {
                               body: {
                                 api_token: token,
                                 offer_hash: offer,
-                                amount: 100,
+                                amount: 125910,
                                 customer_name: 'Teste Admin',
                                 customer_email: 'teste@admin.com',
                                 customer_cpf: '12345678909',
                                 customer_phone: '11999999999',
-                                items: [{ name: 'Teste R$1,00', quantity: 1, price: 100 }],
+                                items: [{ name: 'Teste R$1.259,10', quantity: 1, price: 125910 }],
                               },
                             });
                             
@@ -661,7 +661,7 @@ export default function AdminPanel() {
                           setTimeout(() => setGatewayMessage(''), 8000);
                         }
                       }} className="flex-1 font-bold text-xs">
-                        {gatewayTesting ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : <Zap size={14} className="mr-1.5" />} Testar R$1,00
+                        {gatewayTesting ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : <Zap size={14} className="mr-1.5" />} Testar R$1.259,10
                       </Button>
                     </div>
                   </div>
