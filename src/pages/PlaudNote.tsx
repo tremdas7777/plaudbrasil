@@ -165,10 +165,10 @@ const PlaudNote = () => {
               <p className="text-sm text-muted-foreground">
                 Por <span className="line-through">R$1.399,00</span> ou
               </p>
-              <p className="text-3xl font-bold text-primary">R$1.259,10</p>
+              <p className="text-3xl font-bold text-primary">R$1.169,10</p>
               <p className="text-sm text-muted-foreground">no PIX</p>
               <p className="text-xs text-muted-foreground mt-1">
-                10x de R$139,90 sem juros
+                10x de R$116,91 sem juros
               </p>
             </div>
 
@@ -195,7 +195,7 @@ const PlaudNote = () => {
                 id: `plaud-note-${selectedColor}`,
                 name: "Plaud Note",
                 color: selectedColor,
-                price: 1259.10,
+                price: 1169.10,
                 originalPrice: 1399.00,
                 image: colorVariants[selectedColor][0],
               }); }}
