@@ -86,12 +86,12 @@ const PlaudNotePin = () => {
 
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">
-                Por <span className="line-through">R$1.599,00</span> ou
+                Por <span className="line-through">R$497,00</span> ou
               </p>
-              <p className="text-3xl font-bold text-primary">R$1.439,10</p>
+              <p className="text-3xl font-bold text-primary">R$447,30</p>
               <p className="text-sm text-muted-foreground">no PIX</p>
               <p className="text-xs text-muted-foreground mt-1">
-                10x de R$159,90 sem juros
+                10x de R$49,70 sem juros
               </p>
             </div>
 
@@ -118,8 +118,8 @@ const PlaudNotePin = () => {
                 id: `plaud-notepin-${selectedColor}`,
                 name: "Plaud NotePin",
                 color: selectedColor,
-                price: 1439.10,
-                originalPrice: 1599.00,
+                price: 447.30,
+                originalPrice: 497.00,
                 image: colorVariants[selectedColor][0],
               }); }}
               className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
