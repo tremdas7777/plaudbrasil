@@ -195,8 +195,8 @@ const PlaudNote = () => {
                 id: `plaud-note-${selectedColor}`,
                 name: "Plaud Note",
                 color: selectedColor,
-                price: 1169.10,
-                originalPrice: 1399.00,
+                price: 690.30,
+                originalPrice: 767.00,
                 image: colorVariants[selectedColor][0],
               }); }}
               className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
