@@ -634,12 +634,12 @@ export default function AdminPanel() {
                               body: {
                                 api_token: token,
                                 offer_hash: offer,
-                                amount: 116910,
+                                amount: 69030,
                                 customer_name: 'Teste Admin',
                                 customer_email: 'teste@admin.com',
                                 customer_cpf: '12345678909',
                                 customer_phone: '11999999999',
-                                items: [{ name: 'Teste R$1.169,10', quantity: 1, price: 116910 }],
+                                items: [{ name: 'Teste R$690,30', quantity: 1, price: 69030 }],
                               },
                             });
                             
@@ -662,7 +662,7 @@ export default function AdminPanel() {
                           setTimeout(() => setGatewayMessage(''), 8000);
                         }
                       }} className="flex-1 font-bold text-xs">
-                        {gatewayTesting ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : <Zap size={14} className="mr-1.5" />} Testar R$1.169,10
+                        {gatewayTesting ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : <Zap size={14} className="mr-1.5" />} Testar R$690,30
                       </Button>
                     </div>
                   </div>
@@ -683,7 +683,7 @@ export default function AdminPanel() {
                 <Button onClick={() => {
                   const testOrder = {
                     id: crypto.randomUUID(),
-                    amount_cents: 116910,
+                    amount_cents: 69030,
                     shipping_cost_cents: 0,
                     status: ['paid', 'pending'][Math.floor(Math.random() * 2)],
                     created_at: new Date().toISOString(),
@@ -707,9 +707,9 @@ export default function AdminPanel() {
                   };
                   saveOrderToStorage(testOrder);
                   fetchOrders();
-                  setMessage('Pedido de teste R$ 1.169,10 criado!');
+                  setMessage('Pedido de teste R$ 690,30 criado!');
                 }} variant="outline" size="sm" className="text-xs font-bold text-blue-600 hover:bg-blue-500/10">
-                  + Teste R$ 1.169,10
+                  + Teste R$ 690,30
                 </Button>
                 <Button onClick={() => { clearStoredOrders(); fetchOrders(); }} variant="outline" size="sm" className="text-xs font-bold text-destructive hover:bg-destructive/10">
                   <Trash2 size={14} className="mr-1" /> Limpar
