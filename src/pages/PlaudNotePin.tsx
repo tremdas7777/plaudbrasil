@@ -124,7 +124,7 @@ const PlaudNotePin = () => {
               }); }}
               className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
             >
-              Adicionar ao carrinho
+              Comprar Agora
             </button>
           </div>
         </div>
