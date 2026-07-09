@@ -19,8 +19,8 @@ type Product = {
 const products: Product[] = [
   {
     name: "Plaud Note",
-    pixPrice: "R$1.169,10",
-    installment: "10x de R$116,91 sem juros",
+    pixPrice: "R$690,30",
+    installment: "10x de R$69,03 sem juros",
     href: "/plaud-note",
     available: true,
     colors: [
