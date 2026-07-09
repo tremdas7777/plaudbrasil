@@ -163,12 +163,12 @@ const PlaudNote = () => {
 
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">
-                Por <span className="line-through">R$1.399,00</span> ou
+                Por <span className="line-through">R$767,00</span> ou
               </p>
-              <p className="text-3xl font-bold text-primary">R$1.169,10</p>
-              <p className="text-sm text-muted-foreground">no PIX</p>
+              <p className="text-3xl font-bold text-primary">R$690,30</p>
+              <p className="text-sm text-muted-foreground">no PIX (10% de desconto)</p>
               <p className="text-xs text-muted-foreground mt-1">
-                10x de R$116,91 sem juros
+                10x de R$69,03 sem juros
               </p>
             </div>
 
