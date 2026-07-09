@@ -43,8 +43,8 @@ const products: Product[] = [
   },
   {
     name: "Plaud NotePin",
-    pixPrice: "R$1.439,10",
-    installment: "10x de R$159,90 sem juros",
+    pixPrice: "R$447,30",
+    installment: "10x de R$49,70 sem juros",
     href: "/plaud-notepin",
     available: true,
     colors: [
