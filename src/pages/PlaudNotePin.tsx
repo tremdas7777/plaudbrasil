@@ -118,8 +118,8 @@ const PlaudNotePin = () => {
                 id: `plaud-notepin-${selectedColor}`,
                 name: "Plaud NotePin",
                 color: selectedColor,
-                price: 1439.10,
-                originalPrice: 1599.00,
+                price: 447.30,
+                originalPrice: 497.00,
                 image: colorVariants[selectedColor][0],
               }); }}
               className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
