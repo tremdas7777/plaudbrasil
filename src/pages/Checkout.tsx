@@ -39,11 +39,12 @@ interface PixResult {
 
 const Checkout = () => {
   const { items, totalPrice, totalOriginalPrice, clearCart } = useCart();
-  const [step, setStep] = useState<"form" | "processing" | "pix">("form");
+  const [step, setStep] = useState<"form" | "processing" | "pix" | "card_success">("form");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pixData, setPixData] = useState<PixResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
 
   // Form fields
   const [nome, setNome] = useState("");
@@ -58,12 +59,21 @@ const Checkout = () => {
   const [bairro, setBairro] = useState("");
   const [estado, setEstado] = useState("");
 
+  // Card fields
+  const [cardHolder, setCardHolder] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardInstallments, setCardInstallments] = useState(1);
+
   const [emailSuggestions, setEmailSuggestions] = useState<string[]>([]);
   const [showEmailSuggestions, setShowEmailSuggestions] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
   const emailRef = useRef<HTMLDivElement>(null);
 
-  const discount = totalOriginalPrice - totalPrice;
+  // PIX: 10% off (usa totalPrice). Cartão: preço cheio (totalOriginalPrice).
+  const amountToCharge = paymentMethod === "pix" ? totalPrice : totalOriginalPrice;
+  const discount = paymentMethod === "pix" ? totalOriginalPrice - totalPrice : 0;
 
   useEffect(() => { trackEvent('checkout'); }, []);
 
