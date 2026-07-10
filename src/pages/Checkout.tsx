@@ -518,16 +518,53 @@ const Checkout = () => {
               </div>
             </div>
 
-            {/* Payment — PIX only */}
+            {/* Payment method */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-foreground">Forma de pagamento</h2>
-              <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5">
-                <QrCode className="w-6 h-6 text-primary" />
-                <div>
-                  <span className="font-semibold text-sm text-foreground">PIX</span>
-                  <p className="text-xs text-muted-foreground">10% de desconto</p>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("pix")}
+                  className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-colors ${
+                    paymentMethod === "pix" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/50"
+                  }`}
+                >
+                  <QrCode className={`w-6 h-6 ${paymentMethod === "pix" ? "text-primary" : "text-muted-foreground"}`} />
+                  <div>
+                    <span className="font-semibold text-sm text-foreground block">PIX</span>
+                    <span className="text-xs text-primary font-medium">10% de desconto</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("card")}
+                  className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-colors ${
+                    paymentMethod === "card" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/50"
+                  }`}
+                >
+                  <CreditCard className={`w-6 h-6 ${paymentMethod === "card" ? "text-primary" : "text-muted-foreground"}`} />
+                  <div>
+                    <span className="font-semibold text-sm text-foreground block">Cartão de crédito</span>
+                    <span className="text-xs text-muted-foreground">Em até 10x sem juros</span>
+                  </div>
+                </button>
               </div>
+
+              {paymentMethod === "card" && (
+                <div className="space-y-3 pt-2">
+                  <input required value={cardHolder} onChange={(e) => setCardHolder(e.target.value.toUpperCase())} placeholder="Nome impresso no cartão" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  <input required value={cardNumber} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 19); setCardNumber(d.replace(/(\d{4})(?=\d)/g, "$1 ")); }} placeholder="Número do cartão" inputMode="numeric" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input required value={cardExpiry} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 4); setCardExpiry(d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d); }} placeholder="Validade (MM/AA)" inputMode="numeric" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                    <input required value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="CVV" inputMode="numeric" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  </div>
+                  <select value={cardInstallments} onChange={(e) => setCardInstallments(Number(e.target.value))} className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>{n}x de {formatCurrency(amountToCharge / n)} sem juros</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
 
