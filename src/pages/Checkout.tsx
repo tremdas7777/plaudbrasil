@@ -610,7 +610,7 @@ const Checkout = () => {
               <div className="border-t border-border pt-4">
                 <div className="flex justify-between items-baseline">
                   <span className="font-semibold text-foreground">Total</span>
-                  <p className="text-2xl font-bold text-primary">{formatCurrency(totalPrice)}</p>
+                  <p className="text-2xl font-bold text-primary">{formatCurrency(amountToCharge)}</p>
                 </div>
               </div>
 
@@ -625,7 +625,7 @@ const Checkout = () => {
                     Processando...
                   </>
                 ) : (
-                  "Pagar com PIX"
+                  paymentMethod === "pix" ? "Pagar com PIX" : "Pagar com Cartão"
                 )}
               </button>
 
