@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useCart } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
-import { ChevronLeft, QrCode, Shield, Lock, Copy, Check, Loader2 } from "lucide-react";
+import { ChevronLeft, QrCode, CreditCard, Lock, Copy, Check, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { getPaymentGatewayConfig } from "@/lib/paymentGateway";
 import { saveOrderToStorage } from "@/lib/ordersStorage";
 import { toast } from "sonner";
 import QRCode from "qrcode";
@@ -40,11 +39,12 @@ interface PixResult {
 
 const Checkout = () => {
   const { items, totalPrice, totalOriginalPrice, clearCart } = useCart();
-  const [step, setStep] = useState<"form" | "processing" | "pix">("form");
+  const [step, setStep] = useState<"form" | "processing" | "pix" | "card_success">("form");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pixData, setPixData] = useState<PixResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
 
   // Form fields
   const [nome, setNome] = useState("");
@@ -59,12 +59,21 @@ const Checkout = () => {
   const [bairro, setBairro] = useState("");
   const [estado, setEstado] = useState("");
 
+  // Card fields
+  const [cardHolder, setCardHolder] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardInstallments, setCardInstallments] = useState(1);
+
   const [emailSuggestions, setEmailSuggestions] = useState<string[]>([]);
   const [showEmailSuggestions, setShowEmailSuggestions] = useState(false);
   const [cepLoading, setCepLoading] = useState(false);
   const emailRef = useRef<HTMLDivElement>(null);
 
-  const discount = totalOriginalPrice - totalPrice;
+  // PIX: 10% off (usa totalPrice). Cartão: preço cheio (totalOriginalPrice).
+  const amountToCharge = paymentMethod === "pix" ? totalPrice : totalOriginalPrice;
+  const discount = paymentMethod === "pix" ? totalOriginalPrice - totalPrice : 0;
 
   useEffect(() => { trackEvent('checkout'); }, []);
 
@@ -188,97 +197,122 @@ const Checkout = () => {
       return;
     }
 
+    // Card validation
+    let cardPayload: {
+      holderName: string;
+      number: string;
+      expirationMonth: string;
+      expirationYear: string;
+      cvv: string;
+      installments: number;
+    } | undefined;
+
+    if (paymentMethod === "card") {
+      const numDigits = cardNumber.replace(/\s/g, "");
+      const [mm, yy] = cardExpiry.split("/").map((s) => s?.trim() ?? "");
+      if (!cardHolder.trim()) return toast.error("Informe o nome no cartão.");
+      if (numDigits.length < 13) return toast.error("Número do cartão inválido.");
+      if (!mm || !yy) return toast.error("Validade inválida. Use MM/AA.");
+      if (cardCvv.length < 3) return toast.error("CVV inválido.");
+      cardPayload = {
+        holderName: cardHolder.trim().toUpperCase(),
+        number: numDigits,
+        expirationMonth: mm,
+        expirationYear: yy,
+        cvv: cardCvv,
+        installments: cardInstallments,
+      };
+    }
+
     setIsSubmitting(true);
 
     try {
-      const gatewayConfig = getPaymentGatewayConfig();
+      const amountInCentavos = Math.round(amountToCharge * 100);
 
-      const cleanCpf = cpf.replace(/\D/g, "");
-      const cleanPhone = telefone.replace(/\D/g, "");
+      setStep("processing");
 
-      // IronPay defaults - used when admin hasn't configured yet
-      const IRONPAY_DEFAULT_TOKEN = "RUOkOpSr6bO7jIo6yAJkqKG7ASU2tXoEtpvJQnmaf8eX4uuEIK27vdOreVHv";
-      const IRONPAY_DEFAULT_OFFER = "tlvh7fvagm";
-
-      const apiToken = gatewayConfig.ironpay.apiToken || IRONPAY_DEFAULT_TOKEN;
-      const offerHash = gatewayConfig.ironpay.offerHash || IRONPAY_DEFAULT_OFFER;
-
-      console.log("Gateway config:", JSON.stringify(gatewayConfig));
-      console.log("Using IronPay token:", apiToken ? "set" : "missing", "offer:", offerHash);
-
-      // Always try IronPay PIX
-      {
-        setStep("processing");
-
-        const amountInCentavos = Math.round(totalPrice * 100);
-
-        const { data, error } = await supabase.functions.invoke("ironpay-pix", {
-          body: {
-            api_token: apiToken,
-            offer_hash: offerHash,
-            amount: amountInCentavos,
-            customer_name: nome,
-            customer_email: email,
-            customer_cpf: cleanCpf,
-            customer_phone: cleanPhone,
-            items: items.map((item) => ({
-              name: item.name,
-              quantity: item.quantity,
-              price: Math.round(item.price * 100),
-            })),
+      const { data, error } = await supabase.functions.invoke("legacy-payin", {
+        body: {
+          paymentMethod: paymentMethod === "pix" ? "PIX" : "CREDIT_CARD",
+          amount: amountInCentavos,
+          referenceId: `pedido-${Date.now()}`,
+          isPhysicalProduct: true,
+          customer: {
+            name: nome,
+            email,
+            document: cpfDigits,
+            phone: `55${phoneDigits}`,
+            address: {
+              street: rua,
+              number: numero,
+              zipCode: cep,
+              city: cidade,
+              state: estado,
+              complement: complemento || undefined,
+              neighborhood: bairro || undefined,
+            },
           },
+          items: items.map((i) => ({
+            title: `${i.name} - ${i.color}`,
+            quantity: i.quantity,
+            unitPrice: Math.round((paymentMethod === "pix" ? i.price : i.originalPrice) * 100),
+          })),
+          card: cardPayload,
+        },
+      });
+
+      if (error) throw new Error(error.message || "Erro ao processar pagamento");
+      if (!data?.success) throw new Error(data?.error || "Erro na Legacy");
+
+      const orderId = data.transaction_hash || crypto.randomUUID();
+
+      try {
+        saveOrderToStorage({
+          id: orderId,
+          created_at: new Date().toISOString(),
+          buyer_name: nome,
+          buyer_email: email,
+          buyer_document: cpf,
+          buyer_phone: telefone,
+          buyer_address: rua,
+          buyer_address_number: numero,
+          buyer_complement: complemento,
+          buyer_neighborhood: bairro,
+          buyer_city: cidade,
+          buyer_state: estado,
+          buyer_cep: cep,
+          items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: paymentMethod === "pix" ? i.price : i.originalPrice })),
+          items_description: items.map((i) => `${i.quantity}x ${i.name}`).join(", "),
+          amount_cents: amountInCentavos,
+          pix_code: data.pix_copy_paste || null,
+          status: data.status === "APPROVED" ? "paid" : "pending",
+          gateway: "legacy",
+          shipping_method: paymentMethod,
         });
+      } catch (storageError) {
+        console.warn("Failed to persist order:", storageError);
+      }
 
-        if (error) {
-          throw new Error(error.message || "Erro ao processar pagamento");
-        }
-
-        if (!data?.success) {
-          throw new Error(data?.error || "Erro ao gerar PIX");
-        }
-
-        const resolvedPixData: PixResult = {
-          transaction_hash: data.transaction_hash || crypto.randomUUID(),
+      if (paymentMethod === "pix") {
+        setPixData({
+          transaction_hash: orderId,
           pix_qr_code: data.pix_qr_code || null,
           pix_qr_code_url: data.pix_qr_code_url || null,
           pix_copy_paste: data.pix_copy_paste || data.pix_qr_code || null,
-          status: data.status || "waiting_payment",
+          status: data.status || "PENDING",
           amount: data.amount || amountInCentavos,
           expires_at: data.expires_at || null,
-        };
-
-        if (!resolvedPixData.pix_copy_paste && !resolvedPixData.pix_qr_code_url && !resolvedPixData.pix_qr_code) {
-          throw new Error("A transação foi criada, mas a resposta do PIX veio incompleta.");
-        }
-
-        setPixData(resolvedPixData);
+        });
         setStep("pix");
-
-        try {
-          saveOrderToStorage({
-            id: resolvedPixData.transaction_hash,
-            created_at: new Date().toISOString(),
-            buyer_name: nome,
-            buyer_email: email,
-            buyer_document: cpf,
-            buyer_phone: telefone,
-            buyer_address: rua,
-            buyer_address_number: numero,
-            buyer_complement: complemento,
-            buyer_neighborhood: bairro,
-            buyer_city: cidade,
-            buyer_state: estado,
-            buyer_cep: cep,
-            items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price })),
-            items_description: items.map((i) => `${i.quantity}x ${i.name}`).join(", "),
-            amount_cents: amountInCentavos,
-            pix_code: resolvedPixData.pix_copy_paste,
-            status: resolvedPixData.status || "pending",
-            gateway: "ironpay",
-            shipping_method: "pix",
-          });
-        } catch (storageError) {
-          console.warn("Failed to persist generated order:", storageError);
+      } else {
+        if (data.status === "APPROVED") {
+          toast.success("Pagamento aprovado!");
+          setStep("card_success");
+        } else if (data.status === "REFUSED") {
+          throw new Error("Cartão recusado. Tente outro cartão ou pague com PIX.");
+        } else {
+          toast.info("Pagamento em análise. Você receberá a confirmação por e-mail.");
+          setStep("card_success");
         }
       }
     } catch (err: any) {
@@ -289,6 +323,7 @@ const Checkout = () => {
       setIsSubmitting(false);
     }
   };
+
 
   if (items.length === 0 && step === "form") {
     return (
@@ -310,8 +345,32 @@ const Checkout = () => {
       <Layout>
         <section className="max-w-2xl mx-auto px-6 py-20 text-center">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-6" />
-          <h1 className="text-2xl font-bold mb-2 text-foreground">Gerando seu PIX...</h1>
-          <p className="text-muted-foreground">Aguarde enquanto processamos seu pagamento.</p>
+          <h1 className="text-2xl font-bold mb-2 text-foreground">Processando pagamento...</h1>
+          <p className="text-muted-foreground">Aguarde enquanto validamos com a operadora.</p>
+        </section>
+      </Layout>
+    );
+  }
+
+  // Card success
+  if (step === "card_success") {
+    return (
+      <Layout>
+        <section className="max-w-2xl mx-auto px-6 py-20 text-center">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Check className="w-10 h-10 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2 text-foreground">Pedido recebido!</h1>
+          <p className="text-muted-foreground mb-8">
+            Enviaremos a confirmação por e-mail assim que o pagamento for aprovado.
+          </p>
+          <Link
+            to="/"
+            onClick={() => clearCart()}
+            className="inline-block bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
+          >
+            Voltar à loja
+          </Link>
         </section>
       </Layout>
     );
@@ -459,16 +518,53 @@ const Checkout = () => {
               </div>
             </div>
 
-            {/* Payment — PIX only */}
+            {/* Payment method */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-foreground">Forma de pagamento</h2>
-              <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5">
-                <QrCode className="w-6 h-6 text-primary" />
-                <div>
-                  <span className="font-semibold text-sm text-foreground">PIX</span>
-                  <p className="text-xs text-muted-foreground">10% de desconto</p>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("pix")}
+                  className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-colors ${
+                    paymentMethod === "pix" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/50"
+                  }`}
+                >
+                  <QrCode className={`w-6 h-6 ${paymentMethod === "pix" ? "text-primary" : "text-muted-foreground"}`} />
+                  <div>
+                    <span className="font-semibold text-sm text-foreground block">PIX</span>
+                    <span className="text-xs text-primary font-medium">10% de desconto</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("card")}
+                  className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-colors ${
+                    paymentMethod === "card" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/50"
+                  }`}
+                >
+                  <CreditCard className={`w-6 h-6 ${paymentMethod === "card" ? "text-primary" : "text-muted-foreground"}`} />
+                  <div>
+                    <span className="font-semibold text-sm text-foreground block">Cartão de crédito</span>
+                    <span className="text-xs text-muted-foreground">Em até 10x sem juros</span>
+                  </div>
+                </button>
               </div>
+
+              {paymentMethod === "card" && (
+                <div className="space-y-3 pt-2">
+                  <input required value={cardHolder} onChange={(e) => setCardHolder(e.target.value.toUpperCase())} placeholder="Nome impresso no cartão" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  <input required value={cardNumber} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 19); setCardNumber(d.replace(/(\d{4})(?=\d)/g, "$1 ")); }} placeholder="Número do cartão" inputMode="numeric" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input required value={cardExpiry} onChange={(e) => { const d = e.target.value.replace(/\D/g, "").slice(0, 4); setCardExpiry(d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d); }} placeholder="Validade (MM/AA)" inputMode="numeric" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                    <input required value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="CVV" inputMode="numeric" className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  </div>
+                  <select value={cardInstallments} onChange={(e) => setCardInstallments(Number(e.target.value))} className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>{n}x de {formatCurrency(amountToCharge / n)} sem juros</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
 
@@ -514,7 +610,7 @@ const Checkout = () => {
               <div className="border-t border-border pt-4">
                 <div className="flex justify-between items-baseline">
                   <span className="font-semibold text-foreground">Total</span>
-                  <p className="text-2xl font-bold text-primary">{formatCurrency(totalPrice)}</p>
+                  <p className="text-2xl font-bold text-primary">{formatCurrency(amountToCharge)}</p>
                 </div>
               </div>
 
@@ -529,7 +625,7 @@ const Checkout = () => {
                     Processando...
                   </>
                 ) : (
-                  "Pagar com PIX"
+                  paymentMethod === "pix" ? "Pagar com PIX" : "Pagar com Cartão"
                 )}
               </button>
 
