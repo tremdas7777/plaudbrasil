@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
-import { useCart } from "@/contexts/CartContext";
-import { Link } from "react-router-dom";
 import { trackEvent } from "@/lib/funnelTracking";
 
 const colorVariants = {
@@ -115,7 +113,6 @@ const PlaudNote = () => {
   const [selectedColor, setSelectedColor] = useState<keyof typeof colorVariants>("Cinza");
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeUseCase, setActiveUseCase] = useState(0);
-  const { addItem } = useCart();
 
   const currentImages = colorVariants[selectedColor];
 
@@ -190,19 +187,13 @@ const PlaudNote = () => {
               </div>
             </div>
 
-            <button
-              onClick={() => { trackEvent('add_to_cart'); addItem({
-                id: `plaud-note-${selectedColor}`,
-                name: "Plaud Note",
-                color: selectedColor,
-                price: 690.30,
-                originalPrice: 767.00,
-                image: colorVariants[selectedColor][0],
-              }); }}
-              className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
+            <a
+              href="https://seguro.plaudnotepro.com/checkout/Z-10BD507ZWI2632387"
+              onClick={() => { trackEvent('add_to_cart'); }}
+              className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity block text-center"
             >
-              Comprar Agora
-            </button>
+              Comprar agora
+            </a>
           </div>
         </div>
       </section>
@@ -350,12 +341,12 @@ const PlaudNote = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-foreground">
             Pronto para maximizar sua produtividade?
           </h2>
-          <Link
-            to="/plaud-note"
+          <a
+            href="https://seguro.plaudnotepro.com/checkout/Z-10BD507ZWI2632387"
             className="inline-block bg-primary text-primary-foreground px-10 py-4 rounded-full font-semibold hover:opacity-90 transition-opacity"
           >
             Comprar agora
-          </Link>
+          </a>
         </div>
       </section>
     </Layout>
