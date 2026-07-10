@@ -80,11 +80,11 @@ const CartSidebar = () => {
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="font-semibold text-foreground">Total no PIX</span>
+                <span className="font-semibold text-foreground">Total</span>
                 <span className="font-bold text-xl text-primary">{formatCurrency(totalPrice)}</span>
               </div>
               <p className="text-xs text-muted-foreground text-center">
-                ou {formatCurrency(totalOriginalPrice)} em até 10x sem juros
+                em até 10x sem juros
               </p>
               <button
                 onClick={() => {

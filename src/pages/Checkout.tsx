@@ -71,9 +71,9 @@ const Checkout = () => {
   const [cepLoading, setCepLoading] = useState(false);
   const emailRef = useRef<HTMLDivElement>(null);
 
-  // PIX: 10% off (usa totalPrice). Cartão: preço cheio (totalOriginalPrice).
-  const amountToCharge = paymentMethod === "pix" ? totalPrice : totalOriginalPrice;
-  const discount = paymentMethod === "pix" ? totalOriginalPrice - totalPrice : 0;
+  // Sem descontos PIX
+  const amountToCharge = totalOriginalPrice;
+  const discount = 0;
 
   useEffect(() => { trackEvent('checkout'); }, []);
 
@@ -255,7 +255,7 @@ const Checkout = () => {
           items: items.map((i) => ({
             title: `${i.name} - ${i.color}`,
             quantity: i.quantity,
-            unitPrice: Math.round((paymentMethod === "pix" ? i.price : i.originalPrice) * 100),
+            unitPrice: Math.round(i.originalPrice * 100),
           })),
           card: cardPayload,
         },
@@ -281,7 +281,7 @@ const Checkout = () => {
           buyer_city: cidade,
           buyer_state: estado,
           buyer_cep: cep,
-          items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: paymentMethod === "pix" ? i.price : i.originalPrice })),
+          items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.originalPrice })),
           items_description: items.map((i) => `${i.quantity}x ${i.name}`).join(", "),
           amount_cents: amountInCentavos,
           pix_code: data.pix_copy_paste || null,
