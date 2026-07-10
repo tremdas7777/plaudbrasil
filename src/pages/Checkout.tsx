@@ -345,8 +345,32 @@ const Checkout = () => {
       <Layout>
         <section className="max-w-2xl mx-auto px-6 py-20 text-center">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-6" />
-          <h1 className="text-2xl font-bold mb-2 text-foreground">Gerando seu PIX...</h1>
-          <p className="text-muted-foreground">Aguarde enquanto processamos seu pagamento.</p>
+          <h1 className="text-2xl font-bold mb-2 text-foreground">Processando pagamento...</h1>
+          <p className="text-muted-foreground">Aguarde enquanto validamos com a operadora.</p>
+        </section>
+      </Layout>
+    );
+  }
+
+  // Card success
+  if (step === "card_success") {
+    return (
+      <Layout>
+        <section className="max-w-2xl mx-auto px-6 py-20 text-center">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Check className="w-10 h-10 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2 text-foreground">Pedido recebido!</h1>
+          <p className="text-muted-foreground mb-8">
+            Enviaremos a confirmação por e-mail assim que o pagamento for aprovado.
+          </p>
+          <Link
+            to="/"
+            onClick={() => clearCart()}
+            className="inline-block bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
+          >
+            Voltar à loja
+          </Link>
         </section>
       </Layout>
     );
