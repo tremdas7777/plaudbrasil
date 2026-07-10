@@ -159,9 +159,9 @@ const PlaudNote = () => {
             </p>
 
             <div className="space-y-1">
-              <p className="text-3xl font-bold text-primary">R$690,30</p>
+              <p className="text-3xl font-bold text-primary">R$997,00</p>
               <p className="text-xs text-muted-foreground mt-1">
-                10x de R$69,03 sem juros
+                10x de R$99,70 sem juros
               </p>
             </div>
 
