@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useCart } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
-import { ChevronLeft, QrCode, Shield, Lock, Copy, Check, Loader2 } from "lucide-react";
+import { ChevronLeft, QrCode, CreditCard, Lock, Copy, Check, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { getPaymentGatewayConfig } from "@/lib/paymentGateway";
 import { saveOrderToStorage } from "@/lib/ordersStorage";
 import { toast } from "sonner";
 import QRCode from "qrcode";
