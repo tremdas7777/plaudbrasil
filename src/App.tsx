@@ -55,15 +55,18 @@ const App = () => {
         <BrowserRouter>
           <CartProvider>
             <CartSidebar />
-            <Routes>
-              <Route path="/" element={<CloakedRoute><Index /></CloakedRoute>} />
-              <Route path="/plaud-note" element={<CloakedRoute><PlaudNote /></CloakedRoute>} />
-              <Route path="/plaud-notepin" element={<CloakedRoute><PlaudNotePin /></CloakedRoute>} />
-              <Route path="/checkout" element={<CloakedRoute><Checkout /></CloakedRoute>} />
-              <Route path="/admin" element={<AdminPanel />} />
-              <Route path="/safe" element={<SafePage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={<div className="min-h-screen" />}>
+              <Routes>
+                <Route path="/" element={<CloakedRoute><Index /></CloakedRoute>} />
+                <Route path="/plaud-note" element={<CloakedRoute><PlaudNote /></CloakedRoute>} />
+                <Route path="/plaud-notepin" element={<CloakedRoute><PlaudNotePin /></CloakedRoute>} />
+                <Route path="/checkout" element={<CloakedRoute><Checkout /></CloakedRoute>} />
+                <Route path="/admin" element={<AdminPanel />} />
+                <Route path="/safe" element={<SafePage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+
           </CartProvider>
         </BrowserRouter>
       </TooltipProvider>
