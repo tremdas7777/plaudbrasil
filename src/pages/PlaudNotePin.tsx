@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
+import SmartImage from "@/components/SmartImage";
 import { trackEvent } from "@/lib/funnelTracking";
 
 const colorVariants = {
@@ -54,9 +55,11 @@ const PlaudNotePin = () => {
           {/* Gallery */}
           <div className="flex-1 flex flex-col gap-4">
             <div className="bg-secondary rounded-2xl flex items-center justify-center p-8">
-              <img
+              <SmartImage
                 src={currentImages[selectedImage]}
                 alt="Plaud NotePin"
+                priority
+                wrapperClassName="w-full flex items-center justify-center min-h-[280px] md:min-h-[400px]"
                 className="max-h-[400px] object-contain"
               />
             </div>
@@ -69,7 +72,7 @@ const PlaudNotePin = () => {
                     selectedImage === i ? "border-primary" : "border-border"
                   }`}
                 >
-                  <img src={img} alt={`Plaud NotePin ${i + 1}`} className="w-full h-full object-contain" />
+                  <img src={img} alt={`Plaud NotePin ${i + 1}`} loading="lazy" decoding="async" className="w-full h-full object-contain" />
                 </button>
               ))}
             </div>
