@@ -108,7 +108,7 @@ const PlaudNotePin = () => {
             </div>
 
             <a
-              href="https://seguro.plaudnotepro.com/api/public/shopify?product=3238735192544&store=32387"
+              href="https://seguro.plaudnotepro.com/api/public/shopify?product=3624176552195&store=36241"
               onClick={() => { trackEvent('add_to_cart'); }}
               className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity block text-center"
             >
