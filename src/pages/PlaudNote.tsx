@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
+import SmartImage from "@/components/SmartImage";
 import { trackEvent } from "@/lib/funnelTracking";
 
 const colorVariants = {
@@ -129,9 +130,11 @@ const PlaudNote = () => {
           {/* Gallery */}
           <div className="flex-1 flex flex-col gap-4">
             <div className="bg-secondary rounded-2xl flex items-center justify-center p-8">
-              <img
+              <SmartImage
                 src={currentImages[selectedImage]}
                 alt="Plaud Note"
+                priority
+                wrapperClassName="w-full flex items-center justify-center min-h-[280px] md:min-h-[400px]"
                 className="max-h-[400px] object-contain"
               />
             </div>
@@ -144,7 +147,7 @@ const PlaudNote = () => {
                     selectedImage === i ? "border-primary" : "border-border"
                   }`}
                 >
-                  <img src={img} alt={`Plaud Note ${i + 1}`} className="w-full h-full object-contain" />
+                  <img src={img} alt={`Plaud Note ${i + 1}`} loading="lazy" decoding="async" className="w-full h-full object-contain" />
                 </button>
               ))}
             </div>
@@ -238,6 +241,8 @@ const PlaudNote = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-background rounded-2xl overflow-hidden">
               <img
+                loading="lazy"
+                decoding="async"
                 src="https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/templates/plaud/assets/pc_-_callmode_50ac8d54-52ec-459a-bb31-cc5e796b9b82.png"
                 alt="Gravação de chamadas"
                 className="w-full h-64 object-cover"
@@ -251,6 +256,8 @@ const PlaudNote = () => {
             </div>
             <div className="bg-background rounded-2xl overflow-hidden">
               <img
+                loading="lazy"
+                decoding="async"
                 src="https://cdn.sistemawbuy.com.br/arquivos/d85030244e932a10635b1ae4c660c080/templates/plaud/assets/86_5f862078-5b83-4726-bc3a-9abeab4edad9.png"
                 alt="Gravação presencial"
                 className="w-full h-64 object-cover"
@@ -290,6 +297,8 @@ const PlaudNote = () => {
             </div>
             <div className="flex-1 bg-secondary rounded-2xl overflow-hidden">
               <img
+                loading="lazy"
+                decoding="async"
                 src={useCases[activeUseCase].img}
                 alt={useCases[activeUseCase].title}
                 className="w-full h-64 md:h-80 object-cover"
