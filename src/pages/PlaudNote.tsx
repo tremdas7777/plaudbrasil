@@ -184,7 +184,7 @@ const PlaudNote = () => {
             </div>
 
             <a
-              href="https://seguro.plaudnotepro.com/checkout/Z-10BD507ZWI2632387"
+              href="https://seguro.plaudnotepro.com/api/public/shopify?product=3624135539758&store=36241"
               onClick={() => { trackEvent('add_to_cart'); }}
               className="w-full bg-primary text-primary-foreground py-4 rounded-full font-semibold text-sm hover:opacity-90 transition-opacity block text-center"
             >
@@ -338,7 +338,7 @@ const PlaudNote = () => {
             Pronto para maximizar sua produtividade?
           </h2>
           <a
-            href="https://seguro.plaudnotepro.com/checkout/Z-10BD507ZWI2632387"
+            href="https://seguro.plaudnotepro.com/api/public/shopify?product=3624135539758&store=36241"
             className="inline-block bg-primary text-primary-foreground px-10 py-4 rounded-full font-semibold hover:opacity-90 transition-opacity"
           >
             Comprar agora
